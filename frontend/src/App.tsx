@@ -7,15 +7,23 @@ const API_BASE_URL = 'http://localhost:8000';
 
 function App() {
   const [inputData] = useState<number[]>([64, 34, 25, 12, 22, 11, 90]);
+  const [selectedAlgo, setSelectedAlgo] = useState('bubble_sort');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VersionedAlgorithmContract | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const algorithms = [
+    { id: 'bubble_sort', name: 'Bubble Sort' },
+    { id: 'quick_sort', name: 'Quick Sort' },
+    { id: 'merge_sort', name: 'Merge Sort' },
+    { id: 'insertion_sort', name: 'Insertion Sort' },
+  ];
 
   const runAlgorithm = async (mode: AlgorithmMode, language: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/${mode === AlgorithmMode.VISUALIZATION ? 'visualize' : 'benchmark'}/bubble_sort?language=${language}`, {
+      const response = await fetch(`${API_BASE_URL}/${mode === AlgorithmMode.VISUALIZATION ? 'visualize' : 'benchmark'}/${selectedAlgo}?language=${language}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input_data: inputData }),
@@ -62,9 +70,15 @@ function App() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-zinc-500 mb-2 uppercase tracking-wider">Algorithm</label>
-                <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-200">
-                  Bubble Sort
-                </div>
+                <select 
+                  value={selectedAlgo}
+                  onChange={(e) => setSelectedAlgo(e.target.value)}
+                  className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
+                >
+                  {algorithms.map(algo => (
+                    <option key={algo.id} value={algo.id}>{algo.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -134,6 +148,16 @@ function App() {
                       initialData={inputData} 
                       events={result.events} 
                     />
+                  ) : result.final_state ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                      <div className="mb-4 text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] bg-zinc-950 px-3 py-1 border border-zinc-800 rounded-full">
+                        Benchmark Result (Final State)
+                      </div>
+                      <SortingVisualizer 
+                        initialData={result.final_state} 
+                        events={[]} 
+                      />
+                    </div>
                   ) : (
                     <div className="flex flex-col items-center gap-4 text-zinc-500">
                       <Activity className="w-12 h-12 opacity-20" />

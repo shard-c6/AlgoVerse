@@ -62,6 +62,7 @@ struct VersionedAlgorithmContract
     events::Vector{AlgorithmEvent}
     metrics::AlgorithmMetrics
     complexity::AlgorithmComplexity
+    final_state::Union{Nothing, Vector{Int}}
 end
 
 # StructTypes for JSON serialization

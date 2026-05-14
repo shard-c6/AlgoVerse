@@ -55,4 +55,5 @@ export interface VersionedAlgorithmContract {
     events: AlgorithmEvent[];
     metrics: AlgorithmMetrics;
     complexity: AlgorithmComplexity;
+    final_state?: number[];
 }

@@ -47,3 +47,4 @@ class VersionedAlgorithmContract(BaseModel):
     events: List[AlgorithmEvent] = []
     metrics: AlgorithmMetrics
     complexity: AlgorithmComplexity
+    final_state: Optional[List[int]] = None

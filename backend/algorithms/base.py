@@ -31,7 +31,7 @@ class AlgorithmRunner(ABC):
     def run(self, input_data: List[Any], mode: AlgorithmMode) -> VersionedAlgorithmContract:
         pass
 
-    def create_contract(self, mode: AlgorithmMode, time_ms: float) -> VersionedAlgorithmContract:
+    def create_contract(self, mode: AlgorithmMode, time_ms: float, final_state: List[int] = None) -> VersionedAlgorithmContract:
         return VersionedAlgorithmContract(
             algorithm=self.algorithm_name,
             language="python",
@@ -42,5 +42,6 @@ class AlgorithmRunner(ABC):
                 swaps=self.swaps,
                 time_ms=time_ms
             ),
-            complexity=self.complexity
+            complexity=self.complexity,
+            final_state=final_state
         )
