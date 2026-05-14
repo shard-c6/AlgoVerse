@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build: 
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://algov_user:algov_pass@postgres:5432/algoverse
+      - JULIA_SERVICE_URL=http://julia-service:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../backend:/app
+      - ../shared:/shared
+
+  julia-service:
+    build:
+      context: ../julia-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    volumes:
+      - ../julia-service:/app
+      - ../shared:/shared
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=algov_user
+      - POSTGRES_PASSWORD=algov_pass
+      - POSTGRES_DB=algoverse
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U algov_user -d algoverse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

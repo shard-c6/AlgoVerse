@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: oklch(0.6 0.2 250);
+  --color-surface: oklch(0.98 0 0);
+  --color-surface-dark: oklch(0.15 0 0);
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+:root {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-surface-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    background-color: var(--color-surface-dark);
+    color: var(--color-surface);
+  }
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
