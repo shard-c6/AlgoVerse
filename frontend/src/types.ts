@@ -57,3 +57,16 @@ export interface VersionedAlgorithmContract {
     complexity: AlgorithmComplexity;
     final_state?: number[];
 }
+
+export interface BenchmarkRun {
+    id: number;
+    algorithm_id: number;
+    language: string;
+    input_size: number;
+    execution_time_ms: number;
+    comparisons?: number;
+    swaps?: number;
+    allocations?: number;
+    memory_used_kb?: number;
+    run_date: string;
+}

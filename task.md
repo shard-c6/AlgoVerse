@@ -14,8 +14,15 @@
 - [x] Update Frontend to support algorithm selection
 - [x] Verified all algorithms via API and UI integration
 
-## Phase 3: Persistence & Analytics [ ]
-- [ ] Set up PostgreSQL database
-- [ ] Create benchmark history schema
-- [ ] Implement data ingestion from contracts
-- [ ] Build historical performance dashboard
+## Phase 3: Persistence & Analytics [x]
+- [x] Update `init.sql` with full algorithm registry
+- [x] Enable `sqlalchemy` and `psycopg2-binary` in `requirements.txt`
+- [ ] Start local PostgreSQL container (via Docker)
+- [x] Implement `database.py` (SQLAlchemy setup)
+- [x] Implement `models.py` (DB schema mapping)
+- [x] Update `main.py` with DB session handling
+- [x] Implement result persistence in `/visualize` and `/benchmark`
+- [x] Implement `/history` and `/algorithms` API endpoints
+- [x] Install `recharts` for data visualization
+- [x] Create `HistoryView` component
+- [x] Integrate historical charts into the UI

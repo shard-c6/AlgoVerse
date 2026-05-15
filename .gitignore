@@ -28,3 +28,7 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Agent & Local
+.agent/
+julia_res.json
