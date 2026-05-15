@@ -25,6 +25,61 @@ end`,
             }
         }
     }
+}`,
+    go: `func BubbleSort(arr []int) {
+    n := len(arr)
+    for i := 0; i < n; i++ {
+        for j := 0; j < n-i-1; j++ {
+            if arr[j] > arr[j+1] {
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+            }
+        }
+    }
+}`,
+    csharp: `public void BubbleSort(int[] arr) {
+    int n = arr.Length;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}`,
+    java: `public void bubbleSort(int[] arr) {
+    int n = arr.length;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}`,
+    c: `void bubble_sort(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}`,
+    cpp: `void bubble_sort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                std::swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
 }`
   },
   quick_sort: {
@@ -83,6 +138,118 @@ fn quick_sort_helper(data: &mut Vec<i32>, low: usize, high: usize) {
             quick_sort_helper(data, low, pivot_idx - 1);
         }
         quick_sort_helper(data, pivot_idx + 1, high);
+    }
+}`,
+    go: `func Partition(arr []int, low, high int) int {
+    pivot := arr[high]
+    i := low - 1
+    for j := low; j < high; j++ {
+        if arr[j] <= pivot {
+            i++
+            arr[i], arr[j] = arr[j], arr[i]
+        }
+    }
+    arr[i+1], arr[high] = arr[high], arr[i+1]
+    return i + 1
+}
+
+func QuickSort(arr []int, low, high int) {
+    if low < high {
+        pi := Partition(arr, low, high)
+        QuickSort(arr, low, pi-1)
+        QuickSort(arr, pi+1, high)
+    }
+}`,
+    csharp: `public int Partition(int[] arr, int low, int high) {
+    int pivot = arr[high];
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+    int t = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = t;
+    return i + 1;
+}
+
+public void QuickSort(int[] arr, int low, int high) {
+    if (low < high) {
+        int pi = Partition(arr, low, high);
+        QuickSort(arr, low, pi - 1);
+        QuickSort(arr, pi + 1, high);
+    }
+}`,
+    java: `public int partition(int[] arr, int low, int high) {
+    int pivot = arr[high];
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+    int t = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = t;
+    return i + 1;
+}
+
+public void quickSort(int[] arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}`,
+    c: `int partition(int arr[], int low, int high) {
+    int pivot = arr[high];
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+    int t = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = t;
+    return i + 1;
+}
+
+void quick_sort(int arr[], int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quick_sort(arr, low, pi - 1);
+        quick_sort(arr, pi + 1, high);
+    }
+}`,
+    cpp: `int partition(std::vector<int>& arr, int low, int high) {
+    int pivot = arr[high];
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            std::swap(arr[i], arr[j]);
+        }
+    }
+    std::swap(arr[i + 1], arr[high]);
+    return i + 1;
+}
+
+void quick_sort(std::vector<int>& arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quick_sort(arr, low, pi - 1);
+        quick_sort(arr, pi + 1, high);
     }
 }`
   },
@@ -192,6 +359,54 @@ fn merge_sort_helper(data: &mut Vec<i32>, left: usize, right: usize) {
         merge_sort_helper(data, mid + 1, right);
         merge(data, left, mid, right);
     }
+}`,
+    go: `func Merge(arr []int, l, m, r int) {
+    n1 := m - l + 1
+    n2 := r - m
+    L := make([]int, n1)
+    R := make([]int, n2)
+    for i := 0; i < n1; i++ { L[i] = arr[l+i] }
+    for j := 0; j < n2; j++ { R[j] = arr[m+1+j] }
+    i, j, k := 0, 0, l
+    for i < n1 && j < n2 {
+        if L[i] <= R[j] { arr[k] = L[i]; i++ } else { arr[k] = R[j]; j++ }
+        k++
+    }
+    for i < n1 { arr[k] = L[i]; i++; k++ }
+    for j < n2 { arr[k] = R[j]; j++; k++ }
+}
+
+func MergeSort(arr []int, l, r int) {
+    if l < r {
+        m := l + (r-l)/2
+        MergeSort(arr, l, m)
+        MergeSort(arr, m+1, r)
+        Merge(arr, l, m, r)
+    }
+}`,
+    java: `public void merge(int[] arr, int l, int m, int r) {
+    int n1 = m - l + 1;
+    int n2 = r - m;
+    int[] L = new int[n1];
+    int[] R = new int[n2];
+    System.arraycopy(arr, l, L, 0, n1);
+    System.arraycopy(arr, m + 1, R, 0, n2);
+    int i = 0, j = 0, k = l;
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) arr[k++] = L[i++];
+        else arr[k++] = R[j++];
+    }
+    while (i < n1) arr[k++] = L[i++];
+    while (j < n2) arr[k++] = R[j++];
+}
+
+public void mergeSort(int[] arr, int l, int r) {
+    if (l < r) {
+        int m = l + (r - l) / 2;
+        mergeSort(arr, l, m);
+        mergeSort(arr, m + 1, r);
+        merge(arr, l, m, r);
+    }
 }`
   },
   insertion_sort: {
@@ -226,6 +441,27 @@ end`,
             j -= 1;
         }
         data[j] = key;
+    }
+}`,
+    go: `func InsertionSort(arr []int) {
+    for i := 1; i < len(arr); i++ {
+        key := arr[i]
+        j := i - 1
+        for j >= 0 && arr[j] > key {
+            arr[j+1] = arr[j]
+            j--
+        }
+        arr[j+1] = key
+    }
+}`,
+    java: `public void insertionSort(int[] arr) {
+    for (int i = 1; i < arr.length; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j--];
+        }
+        arr[j + 1] = key;
     }
 }`
   },
@@ -266,6 +502,28 @@ end`,
         if min_idx != i {
             data.swap(i, min_idx);
         }
+    }
+}`,
+    go: `func SelectionSort(arr []int) {
+    n := len(arr)
+    for i := 0; i < n; i++ {
+        minIdx := i
+        for j := i + 1; j < n; j++ {
+            if arr[j] < arr[minIdx] { minIdx = j }
+        }
+        arr[i], arr[minIdx] = arr[minIdx], arr[i]
+    }
+}`,
+    java: `public void selectionSort(int[] arr) {
+    int n = arr.length;
+    for (int i = 0; i < n; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        }
+        int temp = arr[i];
+        arr[i] = arr[minIdx];
+        arr[minIdx] = temp;
     }
 }`
   },
@@ -354,6 +612,47 @@ fn heap_sort(data: &mut Vec<i32>) {
         data.swap(0, i);
         heapify(data, i, 0);
     }
+}`,
+    go: `func Heapify(arr []int, n, i int) {
+    largest := i
+    l, r := 2*i+1, 2*i+2
+    if l < n && arr[l] > arr[largest] { largest = l }
+    if r < n && arr[r] > arr[largest] { largest = r }
+    if largest != i {
+        arr[i], arr[largest] = arr[largest], arr[i]
+        Heapify(arr, n, largest)
+    }
+}
+
+func HeapSort(arr []int) {
+    n := len(arr)
+    for i := n/2 - 1; i >= 0; i-- { Heapify(arr, n, i) }
+    for i := n - 1; i > 0; i-- {
+        arr[0], arr[i] = arr[i], arr[0]
+        Heapify(arr, i, 0)
+    }
+}`,
+    java: `public void heapify(int[] arr, int n, int i) {
+    int largest = i, l = 2*i+1, r = 2*i+2;
+    if (l < n && arr[l] > arr[largest]) largest = l;
+    if (r < n && arr[r] > arr[largest]) largest = r;
+    if (largest != i) {
+        int temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+        heapify(arr, n, largest);
+    }
+}
+
+public void heapSort(int[] arr) {
+    int n = arr.length;
+    for (int i = n/2-1; i >= 0; i--) heapify(arr, n, i);
+    for (int i = n-1; i > 0; i--) {
+        int temp = arr[0];
+        arr[0] = arr[i];
+        arr[i] = temp;
+        heapify(arr, i, 0);
+    }
 }`
   },
   shell_sort: {
@@ -403,6 +702,33 @@ end`,
             data[j] = temp;
         }
         gap /= 2;
+    }
+}`,
+    go: `func ShellSort(arr []int) {
+    n := len(arr)
+    for gap := n/2; gap > 0; gap /= 2 {
+        for i := gap; i < n; i++ {
+            temp := arr[i]
+            j := i
+            for j >= gap && arr[j-gap] > temp {
+                arr[j] = arr[j-gap]
+                j -= gap
+            }
+            arr[j] = temp
+        }
+    }
+}`,
+    java: `public void shellSort(int[] arr) {
+    int n = arr.length;
+    for (int gap = n/2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i], j = i;
+            while (j >= gap && arr[j-gap] > temp) {
+                arr[j] = arr[j-gap];
+                j -= gap;
+            }
+            arr[j] = temp;
+        }
     }
 }`
   }
