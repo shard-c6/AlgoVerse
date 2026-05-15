@@ -181,3 +181,133 @@ class InsertionSortRunner(AlgorithmRunner):
         end_time = time.time()
         time_ms = (end_time - start_time) * 1000
         return self.create_contract(mode, time_ms, arr)
+
+class SelectionSortRunner(AlgorithmRunner):
+    def __init__(self):
+        super().__init__(
+            algorithm_name="selectionsort",
+            complexity=AlgorithmComplexity(time="O(n^2)", space="O(1)")
+        )
+
+    def run(self, input_data: List[int], mode: AlgorithmMode):
+        arr = list(input_data)
+        n = len(arr)
+        start_time = time.time()
+        self.events = []
+        self.comparisons = 0
+        self.swaps = 0
+
+        for i in range(n):
+            min_idx = i
+            for j in range(i + 1, n):
+                self.comparisons += 1
+                if mode == AlgorithmMode.VISUALIZATION:
+                    self.add_event(EventCategory.COMPARISON, "compare to min", indices=[j, min_idx], values=[arr[j], arr[min_idx]])
+                if arr[j] < arr[min_idx]:
+                    min_idx = j
+            
+            if min_idx != i:
+                arr[i], arr[min_idx] = arr[min_idx], arr[i]
+                self.swaps += 1
+                if mode == AlgorithmMode.VISUALIZATION:
+                    self.add_event(EventCategory.ARRAY_MUTATION, "swap min", indices=[i, min_idx], values=[arr[i], arr[min_idx]])
+
+        end_time = time.time()
+        time_ms = (end_time - start_time) * 1000
+        return self.create_contract(mode, time_ms, arr)
+
+class HeapSortRunner(AlgorithmRunner):
+    def __init__(self):
+        super().__init__(
+            algorithm_name="heapsort",
+            complexity=AlgorithmComplexity(time="O(n log n)", space="O(1)")
+        )
+
+    def run(self, input_data: List[int], mode: AlgorithmMode):
+        arr = list(input_data)
+        n = len(arr)
+        start_time = time.time()
+        self.events = []
+        self.comparisons = 0
+        self.swaps = 0
+
+        def heapify(n, i):
+            largest = i
+            l = 2 * i + 1
+            r = 2 * i + 2
+
+            if l < n:
+                self.comparisons += 1
+                if mode == AlgorithmMode.VISUALIZATION:
+                    self.add_event(EventCategory.COMPARISON, "compare left", indices=[l, largest], values=[arr[l], arr[largest]])
+                if arr[l] > arr[largest]:
+                    largest = l
+
+            if r < n:
+                self.comparisons += 1
+                if mode == AlgorithmMode.VISUALIZATION:
+                    self.add_event(EventCategory.COMPARISON, "compare right", indices=[r, largest], values=[arr[r], arr[largest]])
+                if arr[r] > arr[largest]:
+                    largest = r
+
+            if largest != i:
+                arr[i], arr[largest] = arr[largest], arr[i]
+                self.swaps += 1
+                if mode == AlgorithmMode.VISUALIZATION:
+                    self.add_event(EventCategory.ARRAY_MUTATION, "swap in heap", indices=[i, largest], values=[arr[i], arr[largest]])
+                heapify(n, largest)
+
+        for i in range(n // 2 - 1, -1, -1):
+            heapify(n, i)
+
+        for i in range(n - 1, 0, -1):
+            arr[i], arr[0] = arr[0], arr[i]
+            self.swaps += 1
+            if mode == AlgorithmMode.VISUALIZATION:
+                self.add_event(EventCategory.ARRAY_MUTATION, "move root to end", indices=[0, i], values=[arr[0], arr[i]])
+            heapify(i, 0)
+
+        end_time = time.time()
+        time_ms = (end_time - start_time) * 1000
+        return self.create_contract(mode, time_ms, arr)
+
+class ShellSortRunner(AlgorithmRunner):
+    def __init__(self):
+        super().__init__(
+            algorithm_name="shellsort",
+            complexity=AlgorithmComplexity(time="O(n log n)", space="O(1)")
+        )
+
+    def run(self, input_data: List[int], mode: AlgorithmMode):
+        arr = list(input_data)
+        n = len(arr)
+        start_time = time.time()
+        self.events = []
+        self.comparisons = 0
+        self.swaps = 0
+
+        gap = n // 2
+        while gap > 0:
+            for i in range(gap, n):
+                temp = arr[i]
+                j = i
+                while j >= gap:
+                    self.comparisons += 1
+                    if mode == AlgorithmMode.VISUALIZATION:
+                        self.add_event(EventCategory.COMPARISON, "compare in gap", indices=[j-gap, j], values=[arr[j-gap], temp])
+                    
+                    if arr[j - gap] > temp:
+                        arr[j] = arr[j - gap]
+                        if mode == AlgorithmMode.VISUALIZATION:
+                            self.add_event(EventCategory.ARRAY_MUTATION, "shift by gap", indices=[j], values=[arr[j]])
+                        j -= gap
+                    else:
+                        break
+                arr[j] = temp
+                if mode == AlgorithmMode.VISUALIZATION:
+                    self.add_event(EventCategory.ARRAY_MUTATION, "insert in gap", indices=[j], values=[arr[j]])
+            gap //= 2
+
+        end_time = time.time()
+        time_ms = (end_time - start_time) * 1000
+        return self.create_contract(mode, time_ms, arr)

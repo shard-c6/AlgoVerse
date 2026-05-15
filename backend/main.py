@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Body, Query, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contracts.models import AlgorithmMode
-from algorithms.sorting import BubbleSortRunner, QuickSortRunner, MergeSortRunner, InsertionSortRunner
+from algorithms.sorting import BubbleSortRunner, QuickSortRunner, MergeSortRunner, InsertionSortRunner, SelectionSortRunner, HeapSortRunner, ShellSortRunner
 from typing import List, Optional
 import httpx
 import os
@@ -18,10 +18,13 @@ JULIA_SERVICE_URL = os.getenv("JULIA_SERVICE_URL", "http://localhost:8080")
 
 # Internal mapping of slug to Runner class
 ALGORITHM_RUNNERS = {
-    "bubblesort": BubbleSortRunner,
-    "quicksort": QuickSortRunner,
-    "mergesort": MergeSortRunner,
-    "insertionsort": InsertionSortRunner
+    "bubble_sort": BubbleSortRunner,
+    "quick_sort": QuickSortRunner,
+    "merge_sort": MergeSortRunner,
+    "insertion_sort": InsertionSortRunner,
+    "selection_sort": SelectionSortRunner,
+    "heap_sort": HeapSortRunner,
+    "shell_sort": ShellSortRunner
 }
 
 app.add_middleware(

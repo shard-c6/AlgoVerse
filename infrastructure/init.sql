@@ -39,7 +39,10 @@ CREATE TABLE visualization_sessions (
 
 -- Insert initial sorting algorithms metadata
 INSERT INTO algorithms (name, category, description) VALUES
-('quicksort', 'sorting', 'A highly efficient sorting algorithm based on partitioning of array of data into smaller arrays.'),
-('bubblesort', 'sorting', 'A simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.'),
-('mergesort', 'sorting', 'An efficient, stable, comparison-based, divide and conquer sorting algorithm.'),
-('insertionsort', 'sorting', 'A simple sorting algorithm that builds the final sorted array one item at a time.');
+('quick_sort', 'sorting', 'A highly efficient sorting algorithm based on partitioning of array of data into smaller arrays.'),
+('bubble_sort', 'sorting', 'A simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.'),
+('merge_sort', 'sorting', 'An efficient, stable, comparison-based, divide and conquer sorting algorithm.'),
+('insertion_sort', 'sorting', 'A simple sorting algorithm that builds the final sorted array one item at a time.'),
+('selection_sort', 'sorting', 'In-place comparison selection sort with O(n^2) complexity.'),
+('heap_sort', 'sorting', 'Comparison-based sorting using a binary heap with O(n log n) complexity.'),
+('shell_sort', 'sorting', 'Generalization of insertion sort using gaps with O(n log n) complexity.');

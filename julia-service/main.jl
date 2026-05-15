@@ -24,6 +24,12 @@ using .Algorithms
             MergeSortRunner()
         elseif algo_name == "insertion_sort"
             InsertionSortRunner()
+        elseif algo_name == "selection_sort"
+            SelectionSortRunner()
+        elseif algo_name == "heap_sort"
+            HeapSortRunner()
+        elseif algo_name == "shell_sort"
+            ShellSortRunner()
         else
             return HTTP.Response(404, "Algorithm not found")
         end
@@ -46,7 +52,10 @@ end
             "bubble_sort" => BubbleSortRunner,
             "quick_sort" => QuickSortRunner,
             "merge_sort" => MergeSortRunner,
-            "insertion_sort" => InsertionSortRunner
+            "insertion_sort" => InsertionSortRunner,
+            "selection_sort" => SelectionSortRunner,
+            "heap_sort" => HeapSortRunner,
+            "shell_sort" => ShellSortRunner
         )
         
         if !haskey(runners, algo_name)

@@ -308,3 +308,216 @@ function run_algo(runner::InsertionSortRunner, input_data::Vector{Int}, mode::Al
 end
 
 end
+
+# --- Selection Sort Runner ---
+
+mutable struct SelectionSortRunner <: AbstractAlgorithmRunner
+    name::String
+    complexity::AlgorithmComplexity
+    events::Vector{AlgorithmEvent}
+    comparisons::Int64
+    swaps::Int64
+    
+    SelectionSortRunner() = new(
+        "selectionsort", 
+        AlgorithmComplexity("O(n^2)", "O(1)"),
+        AlgorithmEvent[],
+        0,
+        0
+    )
+end
+
+function run_algo(runner::SelectionSortRunner, input_data::Vector{Int}, mode::AlgorithmMode)
+    arr = copy(input_data)
+    n = length(arr)
+    start_time = now()
+    
+    runner.events = AlgorithmEvent[]
+    runner.comparisons = 0
+    runner.swaps = 0
+
+    for i in 1:n
+        min_idx = i
+        for j in (i+1):n
+            runner.comparisons += 1
+            if mode == visualization
+                add_event!(runner, comparison, "compare to min", [j-1, min_idx-1], [arr[j], arr[min_idx]])
+            end
+            if arr[j] < arr[min_idx]
+                min_idx = j
+            end
+        end
+        if min_idx != i
+            arr[i], arr[min_idx] = arr[min_idx], arr[i]
+            runner.swaps += 1
+            if mode == visualization
+                add_event!(runner, array_mutation, "swap min", [i-1, min_idx-1], [arr[i], arr[min_idx]])
+            end
+        end
+    end
+
+    end_time = now()
+    time_ms = float(Dates.value(end_time - start_time))
+    
+    return VersionedAlgorithmContract(
+        "1.0", runner.name, "julia", mode, educational,
+        mode == visualization ? runner.events : AlgorithmEvent[],
+        AlgorithmMetrics(runner.comparisons, runner.swaps, time_ms),
+        runner.complexity, arr
+    )
+end
+
+# --- Heap Sort Runner ---
+
+mutable struct HeapSortRunner <: AbstractAlgorithmRunner
+    name::String
+    complexity::AlgorithmComplexity
+    events::Vector{AlgorithmEvent}
+    comparisons::Int64
+    swaps::Int64
+    
+    HeapSortRunner() = new(
+        "heapsort", 
+        AlgorithmComplexity("O(n log n)", "O(1)"),
+        AlgorithmEvent[],
+        0,
+        0
+    )
+end
+
+function run_algo(runner::HeapSortRunner, input_data::Vector{Int}, mode::AlgorithmMode)
+    arr = copy(input_data)
+    n = length(arr)
+    start_time = now()
+    
+    runner.events = AlgorithmEvent[]
+    runner.comparisons = 0
+    runner.swaps = 0
+
+    function heapify!(n, i)
+        largest = i
+        l = 2 * i
+        r = 2 * i + 1
+
+        if l <= n
+            runner.comparisons += 1
+            if mode == visualization
+                add_event!(runner, comparison, "compare left", [l-1, largest-1], [arr[l], arr[largest]])
+            end
+            if arr[l] > arr[largest]
+                largest = l
+            end
+        end
+
+        if r <= n
+            runner.comparisons += 1
+            if mode == visualization
+                add_event!(runner, comparison, "compare right", [r-1, largest-1], [arr[r], arr[largest]])
+            end
+            if arr[r] > arr[largest]
+                largest = r
+            end
+        end
+
+        if largest != i
+            arr[i], arr[largest] = arr[largest], arr[i]
+            runner.swaps += 1
+            if mode == visualization
+                add_event!(runner, array_mutation, "swap in heap", [i-1, largest-1], [arr[i], arr[largest]])
+            end
+            heapify!(n, largest)
+        end
+    end
+
+    # Build heap
+    for i in floor(Int, n/2):-1:1
+        heapify!(n, i)
+    end
+
+    # Extract elements
+    for i in n:-1:2
+        arr[i], arr[1] = arr[1], arr[i]
+        runner.swaps += 1
+        if mode == visualization
+            add_event!(runner, array_mutation, "move root to end", [0, i-1], [arr[1], arr[i]])
+        end
+        heapify!(i-1, 1)
+    end
+
+    end_time = now()
+    time_ms = float(Dates.value(end_time - start_time))
+    
+    return VersionedAlgorithmContract(
+        "1.0", runner.name, "julia", mode, educational,
+        mode == visualization ? runner.events : AlgorithmEvent[],
+        AlgorithmMetrics(runner.comparisons, runner.swaps, time_ms),
+        runner.complexity, arr
+    )
+end
+
+# --- Shell Sort Runner ---
+
+mutable struct ShellSortRunner <: AbstractAlgorithmRunner
+    name::String
+    complexity::AlgorithmComplexity
+    events::Vector{AlgorithmEvent}
+    comparisons::Int64
+    swaps::Int64
+    
+    ShellSortRunner() = new(
+        "shellsort", 
+        AlgorithmComplexity("O(n log n)", "O(1)"),
+        AlgorithmEvent[],
+        0,
+        0
+    )
+end
+
+function run_algo(runner::ShellSortRunner, input_data::Vector{Int}, mode::AlgorithmMode)
+    arr = copy(input_data)
+    n = length(arr)
+    start_time = now()
+    
+    runner.events = AlgorithmEvent[]
+    runner.comparisons = 0
+    runner.swaps = 0
+
+    gap = floor(Int, n/2)
+    while gap > 0
+        for i in (gap+1):n
+            temp = arr[i]
+            j = i
+            while j > gap
+                runner.comparisons += 1
+                if mode == visualization
+                    add_event!(runner, comparison, "compare in gap", [j-gap-1, j-1], [arr[j-gap], temp])
+                end
+                
+                if arr[j - gap] > temp
+                    arr[j] = arr[j - gap]
+                    if mode == visualization
+                        add_event!(runner, array_mutation, "shift by gap", [j-1], [arr[j]])
+                    end
+                    j -= gap
+                else
+                    break
+                end
+            end
+            arr[j] = temp
+            if mode == visualization
+                add_event!(runner, array_mutation, "insert in gap", [j-1], [arr[j]])
+            end
+        end
+        gap = floor(Int, gap/2)
+    end
+
+    end_time = now()
+    time_ms = float(Dates.value(end_time - start_time))
+    
+    return VersionedAlgorithmContract(
+        "1.0", runner.name, "julia", mode, educational,
+        mode == visualization ? runner.events : AlgorithmEvent[],
+        AlgorithmMetrics(runner.comparisons, runner.swaps, time_ms),
+        runner.complexity, arr
+    )
+end

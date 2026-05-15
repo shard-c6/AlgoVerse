@@ -17,6 +17,9 @@ function App() {
     { id: 'quick_sort', name: 'Quick Sort' },
     { id: 'merge_sort', name: 'Merge Sort' },
     { id: 'insertion_sort', name: 'Insertion Sort' },
+    { id: 'selection_sort', name: 'Selection Sort' },
+    { id: 'heap_sort', name: 'Heap Sort' },
+    { id: 'shell_sort', name: 'Shell Sort' },
   ];
 
   const runAlgorithm = async (mode: AlgorithmMode, language: string) => {

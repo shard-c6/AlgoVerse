@@ -13,6 +13,13 @@
 - [x] Update Julia Oxygen.jl routes
 - [x] Update Frontend to support algorithm selection
 - [x] Verified all algorithms via API and UI integration
+- [x] Implement HeapSort in Python
+- [x] Implement ShellSort in Python
+- [x] Implement SelectionSort in Python
+- [x] Implement HeapSort in Julia
+- [x] Implement ShellSort in Julia
+- [x] Implement SelectionSort in Julia
+- [x] Update registries and contracts for new algorithms
 
 ## Phase 3: Persistence & Analytics [x]
 - [x] Update `init.sql` with full algorithm registry
