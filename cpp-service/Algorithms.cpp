@@ -8,16 +8,20 @@ using namespace std::chrono;
 void add_step_c(json& events, const int* arr, int n, const std::vector<int>& highlighted, bool viz) {
     if (!viz) return;
     json event;
-    event["array"] = std::vector<int>(arr, arr + n);
-    event["highlighted"] = highlighted;
+    event["values"] = std::vector<int>(arr, arr + n);
+    event["indices"] = highlighted;
+    event["category"] = highlighted.empty() ? "mutation" : "comparison";
+    event["timestamp"] = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     events.push_back(event);
 }
 
 void add_step_cpp(json& events, const std::vector<int>& arr, const std::vector<int>& highlighted, bool viz) {
     if (!viz) return;
     json event;
-    event["array"] = arr;
-    event["highlighted"] = highlighted;
+    event["values"] = arr;
+    event["indices"] = highlighted;
+    event["category"] = highlighted.empty() ? "mutation" : "comparison";
+    event["timestamp"] = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     events.push_back(event);
 }
 

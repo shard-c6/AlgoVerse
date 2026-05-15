@@ -7,15 +7,19 @@ import java.util.List;
 public class Algorithms {
 
     public static class Event {
-        public List<Integer> array;
-        public List<Integer> highlighted;
+        public List<Integer> values;
+        public List<Integer> indices;
+        public String category;
+        public long timestamp;
 
         public Event(int[] array, List<Integer> highlighted) {
-            this.array = new ArrayList<>();
+            this.values = new ArrayList<>();
             for (int val : array) {
-                this.array.add(val);
+                this.values.add(val);
             }
-            this.highlighted = highlighted != null ? highlighted : new ArrayList<>();
+            this.indices = highlighted != null ? highlighted : new ArrayList<>();
+            this.category = this.indices.isEmpty() ? "mutation" : "comparison";
+            this.timestamp = System.currentTimeMillis();
         }
     }
 

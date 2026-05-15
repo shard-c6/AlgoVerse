@@ -463,6 +463,40 @@ end`,
         }
         arr[j + 1] = key;
     }
+}`,
+    csharp: `public void InsertionSort(int[] arr) {
+    int n = arr.Length;
+    for (int i = 1; i < n; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j--];
+        }
+        arr[j + 1] = key;
+    }
+}`,
+    c: `void insertion_sort(int arr[], int n) {
+    for (int i = 1; i < n; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }
+}`,
+    cpp: `void insertion_sort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 1; i < n; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }
 }`
   },
   selection_sort: {
@@ -524,6 +558,39 @@ end`,
         int temp = arr[i];
         arr[i] = arr[minIdx];
         arr[minIdx] = temp;
+    }
+}`,
+    csharp: `public void SelectionSort(int[] arr) {
+    int n = arr.Length;
+    for (int i = 0; i < n - 1; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        }
+        int temp = arr[i];
+        arr[i] = arr[minIdx];
+        arr[minIdx] = temp;
+    }
+}`,
+    c: `void selection_sort(int arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int min_idx = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min_idx]) min_idx = j;
+        }
+        int temp = arr[min_idx];
+        arr[min_idx] = arr[i];
+        arr[i] = temp;
+    }
+}`,
+    cpp: `void selection_sort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        int min_idx = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min_idx]) min_idx = j;
+        }
+        std::swap(arr[i], arr[min_idx]);
     }
 }`
   },
@@ -653,6 +720,64 @@ public void heapSort(int[] arr) {
         arr[i] = temp;
         heapify(arr, i, 0);
     }
+}`,
+    csharp: `public void Heapify(int[] arr, int n, int i) {
+    int largest = i, l = 2*i+1, r = 2*i+2;
+    if (l < n && arr[l] > arr[largest]) largest = l;
+    if (r < n && arr[r] > arr[largest]) largest = r;
+    if (largest != i) {
+        int temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+        Heapify(arr, n, largest);
+    }
+}
+public void HeapSort(int[] arr) {
+    int n = arr.Length;
+    for (int i = n/2-1; i >= 0; i--) Heapify(arr, n, i);
+    for (int i = n-1; i > 0; i--) {
+        int temp = arr[0];
+        arr[0] = arr[i];
+        arr[i] = temp;
+        Heapify(arr, i, 0);
+    }
+}`,
+    c: `void heapify(int arr[], int n, int i) {
+    int largest = i, l = 2 * i + 1, r = 2 * i + 2;
+    if (l < n && arr[l] > arr[largest]) largest = l;
+    if (r < n && arr[r] > arr[largest]) largest = r;
+    if (largest != i) {
+        int temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+        heapify(arr, n, largest);
+    }
+}
+void heap_sort(int arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--) heapify(arr, n, i);
+    for (int i = n - 1; i > 0; i--) {
+        int temp = arr[0];
+        arr[0] = arr[i];
+        arr[i] = temp;
+        heapify(arr, i, 0);
+    }
+}`,
+    cpp: `void heapify(std::vector<int>& arr, int n, int i) {
+    int largest = i, l = 2 * i + 1, r = 2 * i + 2;
+    if (l < n && arr[l] > arr[largest]) largest = l;
+    if (r < n && arr[r] > arr[largest]) largest = r;
+    if (largest != i) {
+        std::swap(arr[i], arr[largest]);
+        heapify(arr, n, largest);
+    }
+}
+void heap_sort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int i = n / 2 - 1; i >= 0; i--) heapify(arr, n, i);
+    for (int i = n - 1; i > 0; i--) {
+        std::swap(arr[0], arr[i]);
+        heapify(arr, i, 0);
+    }
 }`
   },
   shell_sort: {
@@ -727,6 +852,42 @@ end`,
                 arr[j] = arr[j-gap];
                 j -= gap;
             }
+            arr[j] = temp;
+        }
+    }
+}`,
+    csharp: `public void ShellSort(int[] arr) {
+    int n = arr.Length;
+    for (int gap = n/2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i], j = i;
+            while (j >= gap && arr[j-gap] > temp) {
+                arr[j] = arr[j-gap];
+                j -= gap;
+            }
+            arr[j] = temp;
+        }
+    }
+}`,
+    c: `void shell_sort(int arr[], int n) {
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i];
+            int j;
+            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap)
+                arr[j] = arr[j - gap];
+            arr[j] = temp;
+        }
+    }
+}`,
+    cpp: `void shell_sort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i];
+            int j;
+            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap)
+                arr[j] = arr[j - gap];
             arr[j] = temp;
         }
     }
