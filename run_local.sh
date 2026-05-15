@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Kill background processes on exit
-trap 'kill $(jobs -p)' EXIT
+# trap 'kill $(jobs -p)' EXIT
 
 echo "Cleaning up existing processes..."
 lsof -ti:8080 | xargs kill -9 2>/dev/null

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Body, Query, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contracts.models import AlgorithmMode
 from algorithms.sorting import BubbleSortRunner, QuickSortRunner, MergeSortRunner, InsertionSortRunner, SelectionSortRunner, HeapSortRunner, ShellSortRunner
-from typing import List, Optional
+from typing import List, Optional, Any
 import httpx
 import os
 import math
