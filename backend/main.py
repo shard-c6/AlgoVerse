@@ -178,7 +178,7 @@ async def visualize(
 ):
     result = None
     if language == "julia":
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(f"{JULIA_SERVICE_URL}/visualize/{algo_name}", json={"input": input_data})
             result = response.json()
     else:
@@ -201,7 +201,7 @@ async def benchmark(
 ):
     result = None
     if language == "julia":
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(f"{JULIA_SERVICE_URL}/benchmark/{algo_name}", json={"input": input_data})
             result = response.json()
     else:

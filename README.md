@@ -93,8 +93,8 @@ The stack will initialize:
 
 - [x] **Phase 1**: Core Orchestrator + Julia Service Integration.
 - [x] **Phase 2**: Versioned Contract & Scaling Algorithm Engine (Quick, Merge, Insertion Sort).
-- [ ] **Phase 3**: Persistence Layer (PostgreSQL) for Benchmark History.
-- [ ] **Phase 4**: D3.js Asymptotic Complexity Dashboard.
+- [x] **Phase 3**: Persistence Layer (SQLite/PostgreSQL) for Benchmark History.
+- [x] **Phase 4**: D3.js Asymptotic Complexity Dashboard.
 - [ ] **Phase 5**: Rust Execution Engine & WebAssembly Support.
 - [ ] **Phase 6**: "Battle Mode" (Side-by-side language performance comparison).
 
