@@ -3,12 +3,7 @@ import * as d3 from 'd3';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, Settings2, Zap, TrendingUp } from 'lucide-react';
 
-interface BenchmarkRun {
-    id: number;
-    language: string;
-    input_size: number;
-    execution_time_ms: number;
-}
+import { type BenchmarkRun } from '../types';
 
 interface TheoreticalPoint {
     n: number;

@@ -1,5 +1,11 @@
 # AlgoVerse Task List
 
+## Maintenance & Stability [x]
+- [x] Resolve Vite `SyntaxError` (BenchmarkRun export conflict)
+- [x] Standardize type imports across Frontend components
+- [x] Verify Rust/Go availability for Phase 5
+
+
 ## Phase 2: Scaling Algorithm Engine [x]
 - [x] Implement QuickSort in Python
 - [x] Implement MergeSort in Python
@@ -41,3 +47,29 @@
 - [x] Add logarithmic scale support and constant factor calibration
 - [x] Integrate complexity insights into the main UI
 - [x] Fixed Julia metrics persistence (time_ms vs execution_time_ns mapping)
+
+## Phase 5: Rust Execution Engine & Polyglot Expansion [x]
+- [x] Scaffold `rust-service` with `Cargo.toml` and `axum`
+- [x] Implement Versioned Contract types in Rust
+- [x] Port sorting algorithms to Rust (Bubble, Quick, Merge, etc.)
+- [x] Integrate Rust service into Backend Orchestrator
+- [x] Add Rust support to Frontend UI and Complexity Dashboard
+- [x] Verify Rust performance metrics persistence
+
+## Phase 6: Code Snippet Viewer [x]
+- [x] Install `react-syntax-highlighter` dependency
+- [x] Create Code Snippet data source (`snippets.ts`) for Python, Julia, Rust
+- [x] Implement `CodeViewer` component
+- [x] Integrate "Code" tab in `App.tsx` navigation
+- [x] Verify active view state mapping
+
+## Phase 7: Polyglot Expansion (Go, C, C++, C#, Java) [ ]
+- [ ] Implement Go Execution Engine (`go-service`)
+- [ ] Implement C# Execution Engine (`csharp-service`)
+- [ ] Implement Java Execution Engine (`java-service`)
+- [ ] Implement C/C++ Execution Engine (`cpp-service`)
+- [ ] Update Python Orchestrator (`main.py`) to route to new services
+- [ ] Expand frontend Code Snippet Viewer to support new languages
+- [ ] Update frontend dashboard with buttons for new languages
+- [ ] Update `run_local.sh` to launch new services
+- [ ] Test and verify all pipelines

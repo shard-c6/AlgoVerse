@@ -43,6 +43,11 @@ seed_db()
 app = FastAPI(title="AlgoVerse Orchestrator")
 
 JULIA_SERVICE_URL = os.getenv("JULIA_SERVICE_URL", "http://localhost:8080")
+RUST_SERVICE_URL = os.getenv("RUST_SERVICE_URL", "http://localhost:8081")
+GO_SERVICE_URL = os.getenv("GO_SERVICE_URL", "http://localhost:8082")
+CSHARP_SERVICE_URL = os.getenv("CSHARP_SERVICE_URL", "http://localhost:8083")
+JAVA_SERVICE_URL = os.getenv("JAVA_SERVICE_URL", "http://localhost:8084")
+CPP_SERVICE_URL = os.getenv("CPP_SERVICE_URL", "http://localhost:8085")
 
 # Internal mapping of slug to Runner class
 ALGORITHM_RUNNERS = {
@@ -63,7 +68,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def persist_result(db: Session, algo_name: str, language: str, mode: str, input_size: int, result: dict):
+def persist_result(db: Session, algo_name: str, language: str, mode: str, input_size: int, result: Any):
     try:
         algo = db.query(models.Algorithm).filter(models.Algorithm.name == algo_name).first()
         if not algo:
@@ -73,11 +78,17 @@ def persist_result(db: Session, algo_name: str, language: str, mode: str, input_
             db.commit()
             db.refresh(algo)
         
-        if mode == "benchmark":
-            metrics = result.get("metrics", {})
+        # Convert Pydantic model to dict if necessary
+        if hasattr(result, "model_dump"):
+            res_dict = result.model_dump()
+        elif hasattr(result, "dict"):
+            res_dict = result.dict()
+        else:
+            res_dict = result
+        
+        if mode == "benchmark" or mode == "benchmark":
+            metrics = res_dict.get("metrics", {})
             # Handle both Python (ms or ns) and potential Julia variations
-            # Julia returns 'time_ms' directly in the contract
-            # Python runners also return 'time_ms' in create_contract
             time_ms = metrics.get("time_ms")
             if time_ms is None:
                 time_ns = metrics.get("execution_time_ns", 0)
@@ -100,7 +111,7 @@ def persist_result(db: Session, algo_name: str, language: str, mode: str, input_
                 algorithm_id=algo.id,
                 language=language,
                 input_size=input_size,
-                events_json=result.get("events", [])
+                events_json=res_dict.get("events", [])
             )
             db.add(session)
         
@@ -181,6 +192,25 @@ async def visualize(
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(f"{JULIA_SERVICE_URL}/visualize/{algo_name}", json={"input": input_data})
             result = response.json()
+    elif language == "rust":
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Rust service expects 'data' instead of 'input' in the payload
+            response = await client.post(f"{RUST_SERVICE_URL}/visualize/{algo_name}", json={"data": input_data})
+            result = response.json()
+    elif language in ["go", "csharp", "java", "c", "cpp"]:
+        urls = {
+            "go": GO_SERVICE_URL,
+            "csharp": CSHARP_SERVICE_URL,
+            "java": JAVA_SERVICE_URL,
+            "c": CPP_SERVICE_URL,
+            "cpp": CPP_SERVICE_URL
+        }
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{urls[language]}/visualize", 
+                json={"algorithm": algo_name, "array": input_data, "language": language}
+            )
+            result = response.json()
     else:
         if algo_name not in ALGORITHM_RUNNERS:
             raise HTTPException(status_code=404, detail="Algorithm not found")
@@ -203,6 +233,25 @@ async def benchmark(
     if language == "julia":
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(f"{JULIA_SERVICE_URL}/benchmark/{algo_name}", json={"input": input_data})
+            result = response.json()
+    elif language == "rust":
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Rust service expects 'data' instead of 'input' in the payload
+            response = await client.post(f"{RUST_SERVICE_URL}/benchmark/{algo_name}", json={"data": input_data})
+            result = response.json()
+    elif language in ["go", "csharp", "java", "c", "cpp"]:
+        urls = {
+            "go": GO_SERVICE_URL,
+            "csharp": CSHARP_SERVICE_URL,
+            "java": JAVA_SERVICE_URL,
+            "c": CPP_SERVICE_URL,
+            "cpp": CPP_SERVICE_URL
+        }
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{urls[language]}/benchmark", 
+                json={"algorithm": algo_name, "array": input_data, "language": language}
+            )
             result = response.json()
     else:
         if algo_name not in ALGORITHM_RUNNERS:

@@ -4,6 +4,7 @@ import { AlgorithmMode, type VersionedAlgorithmContract } from './types';
 import { SortingVisualizer } from './components/SortingVisualizer';
 import HistoryView from './components/HistoryView';
 import ComplexityDashboard from './components/ComplexityDashboard';
+import CodeViewer from './components/CodeViewer';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -13,7 +14,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VersionedAlgorithmContract | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<'visualize' | 'history' | 'complexity'>('visualize');
+  const [activeView, setActiveView] = useState<'visualize' | 'history' | 'complexity' | 'code'>('visualize');
 
   const algorithms = [
     { id: 'bubble_sort', name: 'Bubble Sort' },
@@ -82,6 +83,12 @@ function App() {
           >
             <TrendingUp size={18} /> Complexity
           </button>
+          <button 
+            onClick={() => setActiveView('code')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${activeView === 'code' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'}`}
+          >
+            <Code size={18} /> Code
+          </button>
         </nav>
       </header>
 
@@ -108,26 +115,39 @@ function App() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => runAlgorithm(AlgorithmMode.VISUALIZATION, 'python')}
-                  disabled={loading}
-                  className="flex flex-col items-center justify-center p-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 transition-all rounded-xl gap-2 group shadow-lg shadow-indigo-500/10"
-                >
-                  <Play className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium">Visualize</span>
-                  <span className="text-[10px] opacity-60">Python</span>
-                </button>
+              <div className="grid grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {[
+                  { id: 'python', name: 'Python', color: 'indigo' },
+                  { id: 'julia', name: 'Julia', color: 'cyan' },
+                  { id: 'rust', name: 'Rust', color: 'orange' },
+                  { id: 'go', name: 'Go', color: 'sky' },
+                  { id: 'csharp', name: 'C#', color: 'purple' },
+                  { id: 'java', name: 'Java', color: 'red' },
+                  { id: 'c', name: 'C', color: 'blue' },
+                  { id: 'cpp', name: 'C++', color: 'emerald' },
+                ].map(lang => (
+                  <div key={lang.id} className="col-span-2 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => runAlgorithm(AlgorithmMode.VISUALIZATION, lang.id)}
+                      disabled={loading}
+                      className={`flex flex-col items-center justify-center p-3 bg-${lang.color}-600 hover:bg-${lang.color}-500 disabled:opacity-50 transition-all rounded-xl gap-1 group shadow-lg shadow-${lang.color}-500/10`}
+                    >
+                      <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-medium">Visualize</span>
+                      <span className="text-[9px] opacity-60 uppercase">{lang.name}</span>
+                    </button>
 
-                <button
-                  onClick={() => runAlgorithm(AlgorithmMode.BENCHMARK, 'julia')}
-                  disabled={loading}
-                  className="flex flex-col items-center justify-center p-4 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 transition-all rounded-xl gap-2 group shadow-lg shadow-cyan-500/10"
-                >
-                  <Activity className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium">Benchmark</span>
-                  <span className="text-[10px] opacity-60">Julia</span>
-                </button>
+                    <button
+                      onClick={() => runAlgorithm(AlgorithmMode.BENCHMARK, lang.id)}
+                      disabled={loading}
+                      className={`flex flex-col items-center justify-center p-3 bg-${lang.color}-600 hover:bg-${lang.color}-500 disabled:opacity-50 transition-all rounded-xl gap-1 group shadow-lg shadow-${lang.color}-500/10`}
+                    >
+                      <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-medium">Benchmark</span>
+                      <span className="text-[9px] opacity-60 uppercase">{lang.name}</span>
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
@@ -247,6 +267,12 @@ function App() {
 
           {activeView === 'complexity' && (
             <ComplexityDashboard algorithm={selectedAlgo} />
+          )}
+
+          {activeView === 'code' && (
+            <div className="h-[600px]">
+              <CodeViewer algorithm={selectedAlgo} />
+            </div>
           )}
         </section>
       </main>

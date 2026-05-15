@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { BenchmarkRun } from '../types';
+import type { BenchmarkRun } from '../types';
 import { Clock, Database, Activity, TrendingUp } from 'lucide-react';
 
 interface HistoryViewProps {

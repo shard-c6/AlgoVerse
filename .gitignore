@@ -1,34 +1,43 @@
-# Node
-node_modules/
-dist/
-.npm
-*.tsbuildinfo
+# Build artifacts
+target/
+bin/
+obj/
+*.o
+*.exe
+*.dll
+*.so
+*.dylib
+rust-service/target/
+go-service/go-service
+cpp-service/cpp-service
+java-service/target/
 
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
+.venv/
+env/
 venv/
+ENV/
+
+# Node
+node_modules/
+dist/
 .env
-.pytest_cache/
+frontend/.env
+frontend/build/
 
-# Julia
-Manifest.toml
-julia-service/output.log
+# Database
+backend/algoverse.db
+backend/algoverse.db-journal
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Docker
-docker-compose.override.yml
-
-# Agent & Local
+# Logs & Temp
+*.log
+pid.txt
+scratch/
 .agent/
 julia_res.json
+
+# OS files
+.DS_Store
