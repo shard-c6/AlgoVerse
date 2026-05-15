@@ -24,8 +24,7 @@
 ## Phase 3: Persistence & Analytics [x]
 - [x] Update `init.sql` with full algorithm registry
 - [x] Enable `sqlalchemy` and `psycopg2-binary` in `requirements.txt`
-- [ ] Start local PostgreSQL container (via Docker)
-- [x] Implement `database.py` (SQLAlchemy setup)
+- [x] Implement `database.py` (SQLAlchemy setup) - *Fallback to SQLite implemented*
 - [x] Implement `models.py` (DB schema mapping)
 - [x] Update `main.py` with DB session handling
 - [x] Implement result persistence in `/visualize` and `/benchmark`
@@ -33,3 +32,12 @@
 - [x] Install `recharts` for data visualization
 - [x] Create `HistoryView` component
 - [x] Integrate historical charts into the UI
+
+## Phase 4: Asymptotic Complexity Dashboard [x]
+- [x] Implement theoretical complexity models in Backend
+- [x] Create `/complexity` endpoint for trend analysis
+- [x] Setup D3.js in Frontend
+- [x] Build `ComplexityDashboard` component with multi-series line charts
+- [x] Add logarithmic scale support and constant factor calibration
+- [x] Integrate complexity insights into the main UI
+- [x] Fixed Julia metrics persistence (time_ms vs execution_time_ns mapping)

@@ -5,12 +5,40 @@ from algorithms.sorting import BubbleSortRunner, QuickSortRunner, MergeSortRunne
 from typing import List, Optional
 import httpx
 import os
+import math
 from sqlalchemy.orm import Session
 from database import get_db, engine
 import models
 
 # Create tables if they don't exist
 models.Base.metadata.create_all(bind=engine)
+
+COMPLEXITY_MODELS = {
+    "bubble_sort": "O(n^2)",
+    "quick_sort": "O(n log n)",
+    "merge_sort": "O(n log n)",
+    "insertion_sort": "O(n^2)",
+    "selection_sort": "O(n^2)",
+    "heap_sort": "O(n log n)",
+    "shell_sort": "O(n log n)"
+}
+
+def seed_db():
+    db = next(get_db())
+    if db.query(models.Algorithm).count() == 0:
+        print("Seeding database with default algorithms...")
+        for name, complexity in COMPLEXITY_MODELS.items():
+            algo = models.Algorithm(
+                name=name, 
+                category="sorting", 
+                description=f"Standard {name.replace('_', ' ')} implementation",
+                complexity_class=complexity
+            )
+            db.add(algo)
+        db.commit()
+    db.close()
+
+seed_db()
 
 app = FastAPI(title="AlgoVerse Orchestrator")
 
@@ -47,18 +75,23 @@ def persist_result(db: Session, algo_name: str, language: str, mode: str, input_
         
         if mode == "benchmark":
             metrics = result.get("metrics", {})
-            # Handle both Python (ns) and potential Julia variations
-            time_ns = metrics.get("execution_time_ns", 0)
+            # Handle both Python (ms or ns) and potential Julia variations
+            # Julia returns 'time_ms' directly in the contract
+            # Python runners also return 'time_ms' in create_contract
+            time_ms = metrics.get("time_ms")
+            if time_ms is None:
+                time_ns = metrics.get("execution_time_ns", 0)
+                time_ms = time_ns / 1_000_000.0
             
             run = models.BenchmarkRun(
                 algorithm_id=algo.id,
                 language=language,
                 input_size=input_size,
-                execution_time_ms=time_ns / 1_000_000.0,
+                execution_time_ms=time_ms,
                 comparisons=metrics.get("comparisons"),
                 swaps=metrics.get("swaps"),
                 allocations=metrics.get("allocations"),
-                memory_used_kb=metrics.get("memory_allocated_bytes", 0) / 1024.0,
+                memory_used_kb=metrics.get("memory_allocated_bytes", 0) / 1024.0 if metrics.get("memory_allocated_bytes") else metrics.get("memory_used_kb", 0),
                 metrics_json=metrics
             )
             db.add(run)
@@ -100,6 +133,41 @@ async def get_history(algo_name: str, db: Session = Depends(get_db)):
              .limit(50)\
              .all()
     return runs
+
+@app.get("/complexity/{algo_name}")
+async def get_complexity_data(algo_name: str, db: Session = Depends(get_db)):
+    algo = db.query(models.Algorithm).filter(models.Algorithm.name == algo_name).first()
+    if not algo:
+        raise HTTPException(status_code=404, detail="Algorithm not found")
+    
+    # Get historical actuals
+    actual_runs = db.query(models.BenchmarkRun)\
+                   .filter(models.BenchmarkRun.algorithm_id == algo.id)\
+                   .order_by(models.BenchmarkRun.input_size.asc())\
+                   .all()
+    
+    # Generate theoretical points based on complexity class
+    input_sizes = sorted(list(set([run.input_size for run in actual_runs])))
+    if not input_sizes:
+        input_sizes = [10, 50, 100, 500, 1000] # Default range
+        
+    theoretical_points = []
+    for n in input_sizes:
+        val = 0
+        if algo.complexity_class == "O(n^2)":
+            val = n * n
+        elif algo.complexity_class == "O(n log n)":
+            val = n * math.log2(n) if n > 0 else 0
+        else:
+            val = n
+        theoretical_points.append({"n": n, "theoretical_value": val})
+        
+    return {
+        "algorithm": algo.name,
+        "complexity": algo.complexity_class,
+        "actual_runs": actual_runs,
+        "theoretical_points": theoretical_points
+    }
 
 @app.post("/visualize/{algo_name}")
 async def visualize(

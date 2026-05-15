@@ -4,9 +4,22 @@ module Algorithms
 using ..Contracts
 using Dates
 
-export AbstractAlgorithmRunner, BubbleSortRunner, QuickSortRunner, MergeSortRunner, InsertionSortRunner, run_algo
+export AbstractAlgorithmRunner, BubbleSortRunner, QuickSortRunner, MergeSortRunner, InsertionSortRunner, 
+       SelectionSortRunner, HeapSortRunner, ShellSortRunner, run_algo
 
 abstract type AbstractAlgorithmRunner end
+
+# --- Shared Utilities ---
+
+function add_event!(runner::AbstractAlgorithmRunner, category::EventCategory, event::String, idx=nothing, val=nothing)
+    push!(runner.events, AlgorithmEvent(
+        Int64(floor(datetime2unix(now()) * 1000)),
+        category,
+        event,
+        idx,
+        val
+    ))
+end
 
 # --- Bubble Sort Runner ---
 
@@ -25,20 +38,6 @@ mutable struct BubbleSortRunner <: AbstractAlgorithmRunner
         0
     )
 end
-
-# --- Shared Utilities ---
-
-function add_event!(runner::AbstractAlgorithmRunner, category::EventCategory, event::String, idx=nothing, val=nothing)
-    push!(runner.events, AlgorithmEvent(
-        Int64(floor(datetime2unix(now()) * 1000)),
-        category,
-        event,
-        idx,
-        val
-    ))
-end
-
-# --- Bubble Sort Runner ---
 
 function run_algo(runner::BubbleSortRunner, input_data::Vector{Int}, mode::AlgorithmMode)
     arr = copy(input_data)
@@ -307,8 +306,6 @@ function run_algo(runner::InsertionSortRunner, input_data::Vector{Int}, mode::Al
     )
 end
 
-end
-
 # --- Selection Sort Runner ---
 
 mutable struct SelectionSortRunner <: AbstractAlgorithmRunner
@@ -521,3 +518,6 @@ function run_algo(runner::ShellSortRunner, input_data::Vector{Int}, mode::Algori
         runner.complexity, arr
     )
 end
+
+end
+

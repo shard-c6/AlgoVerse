@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Play, Activity, Code, Layers, Terminal } from 'lucide-react';
+import { Play, Activity, Code, Layers, Terminal, BarChart2, TrendingUp, History } from 'lucide-react';
 import { AlgorithmMode, type VersionedAlgorithmContract } from './types';
 import { SortingVisualizer } from './components/SortingVisualizer';
+import HistoryView from './components/HistoryView';
+import ComplexityDashboard from './components/ComplexityDashboard';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -11,6 +13,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VersionedAlgorithmContract | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<'visualize' | 'history' | 'complexity'>('visualize');
 
   const algorithms = [
     { id: 'bubble_sort', name: 'Bubble Sort' },
@@ -56,9 +59,30 @@ function App() {
             AlgoVerse
           </h1>
         </div>
-        <p className="text-zinc-400 text-lg max-w-2xl">
+        <p className="text-zinc-400 text-lg max-w-2xl mb-8">
           High-performance DSA visualization, analysis, and benchmarking platform.
         </p>
+
+        <nav className="flex gap-4 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl w-fit">
+          <button 
+            onClick={() => setActiveView('visualize')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${activeView === 'visualize' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'}`}
+          >
+            <Play size={18} /> Visualize
+          </button>
+          <button 
+            onClick={() => setActiveView('history')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${activeView === 'history' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'}`}
+          >
+            <History size={18} /> History
+          </button>
+          <button 
+            onClick={() => setActiveView('complexity')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${activeView === 'complexity' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'}`}
+          >
+            <TrendingUp size={18} /> Complexity
+          </button>
+        </nav>
       </header>
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -138,81 +162,92 @@ function App() {
 
         {/* Display Panel */}
         <section className="lg:col-span-8 space-y-6">
-          <div className="h-[400px] bg-zinc-900/50 border border-zinc-800 rounded-3xl flex items-center justify-center relative overflow-hidden group">
-            {loading ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-                <p className="text-zinc-400 font-medium animate-pulse">Executing algorithm on server...</p>
+          {activeView === 'visualize' && (
+            <>
+              <div className="h-[400px] bg-zinc-900/50 border border-zinc-800 rounded-3xl flex items-center justify-center relative overflow-hidden group">
+                {loading ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                    <p className="text-zinc-400 font-medium animate-pulse">Executing algorithm on server...</p>
+                  </div>
+                ) : result ? (
+                    <div className="w-full h-full p-8 flex flex-col items-center justify-center">
+                      {result.mode === AlgorithmMode.VISUALIZATION && result.events.length > 0 ? (
+                        <SortingVisualizer 
+                          initialData={inputData} 
+                          events={result.events} 
+                        />
+                      ) : result.final_state ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                          <div className="mb-4 text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] bg-zinc-950 px-3 py-1 border border-zinc-800 rounded-full">
+                            Benchmark Result (Final State)
+                          </div>
+                          <SortingVisualizer 
+                            initialData={result.final_state} 
+                            events={[]} 
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-4 text-zinc-500">
+                          <Activity className="w-12 h-12 opacity-20" />
+                          <p className="uppercase tracking-widest text-sm italic">
+                            Benchmarking complete. High-N scale achieved.
+                          </p>
+                          <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl font-mono text-xs">
+                            {result.metrics.comparisons} comparisons | {result.metrics.swaps} swaps
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                ) : (
+                  <div className="text-center px-12">
+                    <Layers className="w-16 h-16 text-zinc-800 mx-auto mb-4" />
+                    <h3 className="text-zinc-400 font-medium mb-2 text-xl">No Active Execution</h3>
+                    <p className="text-zinc-600">Select an execution mode from the left to begin analysis.</p>
+                  </div>
+                )}
+                
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[120px] pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/5 blur-[120px] pointer-events-none"></div>
               </div>
-            ) : result ? (
-                <div className="w-full h-full p-8 flex flex-col items-center justify-center">
-                  {result.mode === AlgorithmMode.VISUALIZATION && result.events.length > 0 ? (
-                    <SortingVisualizer 
-                      initialData={inputData} 
-                      events={result.events} 
-                    />
-                  ) : result.final_state ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center">
-                      <div className="mb-4 text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] bg-zinc-950 px-3 py-1 border border-zinc-800 rounded-full">
-                        Benchmark Result (Final State)
-                      </div>
-                      <SortingVisualizer 
-                        initialData={result.final_state} 
-                        events={[]} 
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-4 text-zinc-500">
-                      <Activity className="w-12 h-12 opacity-20" />
-                      <p className="uppercase tracking-widest text-sm italic">
-                        Benchmarking complete. High-N scale achieved.
-                      </p>
-                      <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl font-mono text-xs">
-                        {result.metrics.comparisons} comparisons | {result.metrics.swaps} swaps
-                      </div>
-                    </div>
+
+              <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Terminal className="w-5 h-5 text-indigo-400" />
+                    Execution Log (Contract v{result?.version || '1.0'})
+                  </h2>
+                  {result && (
+                    <span className="px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-[10px] font-mono text-zinc-500 uppercase tracking-tighter">
+                      {result.language} @ {result.mode}
+                    </span>
                   )}
                 </div>
-            ) : (
-              <div className="text-center px-12">
-                <Layers className="w-16 h-16 text-zinc-800 mx-auto mb-4" />
-                <h3 className="text-zinc-400 font-medium mb-2 text-xl">No Active Execution</h3>
-                <p className="text-zinc-600">Select an execution mode from the left to begin analysis.</p>
-              </div>
-            )}
-            
-            {/* Ambient Background Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/5 blur-[120px] pointer-events-none"></div>
-          </div>
-
-          <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-indigo-400" />
-                Execution Log (Contract v{result?.version || '1.0'})
-              </h2>
-              {result && (
-                <span className="px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-[10px] font-mono text-zinc-500 uppercase tracking-tighter">
-                  {result.language} @ {result.mode}
-                </span>
-              )}
-            </div>
-            
-            <div className="bg-zinc-950 rounded-xl p-4 h-64 overflow-y-auto font-mono text-sm border border-zinc-800">
-              {error ? (
-                <div className="text-red-400 flex items-center gap-2">
-                  <span className="text-lg font-bold">!</span> {error}
+                
+                <div className="bg-zinc-950 rounded-xl p-4 h-64 overflow-y-auto font-mono text-sm border border-zinc-800">
+                  {error ? (
+                    <div className="text-red-400 flex items-center gap-2">
+                      <span className="text-lg font-bold">!</span> {error}
+                    </div>
+                  ) : result ? (
+                    <pre className="text-zinc-400 whitespace-pre-wrap">
+                      {JSON.stringify(result, null, 2)}
+                    </pre>
+                  ) : (
+                    <div className="text-zinc-700 italic">Waiting for input...</div>
+                  )}
                 </div>
-              ) : result ? (
-                <pre className="text-zinc-400 whitespace-pre-wrap">
-                  {JSON.stringify(result, null, 2)}
-                </pre>
-              ) : (
-                <div className="text-zinc-700 italic">Waiting for input...</div>
-              )}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
+
+          {activeView === 'history' && (
+            <HistoryView algorithm={selectedAlgo} />
+          )}
+
+          {activeView === 'complexity' && (
+            <ComplexityDashboard algorithm={selectedAlgo} />
+          )}
         </section>
       </main>
     </div>

@@ -3,13 +3,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Database URL from environment or default to local docker setup
+# Database URL from environment or default to local sqlite
 SQLALCHEMY_DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "postgresql://algov_user:algov_pass@localhost:5432/algoverse"
+    "sqlite:///./algoverse.db"
 )
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# SQLite requires different engine arguments
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    )
+else:
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .database import Base
+from database import Base
 
 class Algorithm(Base):
     __tablename__ = "algorithms"
@@ -10,6 +10,7 @@ class Algorithm(Base):
     name = Column(String(100), unique=True, nullable=False)
     category = Column(String(50), nullable=False)
     description = Column(Text)
+    complexity_class = Column(String(50)) # e.g. O(n log n), O(n^2)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     benchmark_runs = relationship("BenchmarkRun", back_populates="algorithm")
