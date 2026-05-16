@@ -41,15 +41,27 @@ export const SortingVisualizer = ({ initialData, events, onComplete }: SortingVi
     };
   }, [currentEventIndex, events, isPaused]);
 
+  const [description, setDescription] = useState<string>('');
+
   const processEvent = (event: AlgorithmEvent) => {
-    if (event.category === EventCategory.COMPARISON) {
+    if (event.description) {
+      setDescription(event.description);
+    }
+
+    if (event.category === EventCategory.INITIAL) {
+      if (event.values) setData([...event.values]);
+      setActiveIndices([]);
+    } else if (event.category === EventCategory.FINAL) {
+      if (event.values) setData([...event.values]);
+      setActiveIndices([]);
+    } else if (event.category === EventCategory.COMPARISON) {
       setActiveIndices(event.indices || []);
     } else if (event.category === EventCategory.ARRAY_MUTATION) {
       setActiveIndices(event.indices || []);
       if (event.indices && event.values) {
         const newData = [...data];
         event.indices.forEach((idx, i) => {
-          newData[idx] = event.values![i] as number;
+          newData[idx] = event.values![i];
         });
         setData(newData);
       }
@@ -79,6 +91,12 @@ export const SortingVisualizer = ({ initialData, events, onComplete }: SortingVi
           </motion.div>
         ))}
       </div>
+      <div className="h-12 flex items-center justify-center text-center px-4 mb-4">
+        <p className="text-sm font-medium text-zinc-300">
+          {description || 'Ready to visualize...'}
+        </p>
+      </div>
+
       <div className="mt-8 flex gap-4 items-center">
         <button 
           onClick={() => setIsPaused(!isPaused)}
@@ -91,6 +109,7 @@ export const SortingVisualizer = ({ initialData, events, onComplete }: SortingVi
             setCurrentEventIndex(-1);
             setData(initialData);
             setActiveIndices([]);
+            setDescription('');
           }}
           className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs font-medium transition-colors"
         >

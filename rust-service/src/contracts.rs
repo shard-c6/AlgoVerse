@@ -10,6 +10,8 @@ pub enum AlgorithmMode {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum EventCategory {
+    Initial,
+    Final,
     ArrayMutation,
     Comparison,
     Traversal,
@@ -20,15 +22,15 @@ pub enum EventCategory {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AlgorithmEvent {
-    pub timestamp: f64,
+    pub timestamp: u64,
     pub category: EventCategory,
     pub event: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indices: Option<Vec<usize>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub values: Option<Vec<serde_json::Value>>,
+    pub values: Option<Vec<i32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<serde_json::Value>,
+    pub description: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

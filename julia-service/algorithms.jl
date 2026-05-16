@@ -11,13 +11,14 @@ abstract type AbstractAlgorithmRunner end
 
 # --- Shared Utilities ---
 
-function add_event!(runner::AbstractAlgorithmRunner, category::EventCategory, event::String, idx=nothing, val=nothing)
+function add_event!(runner::AbstractAlgorithmRunner, category::EventCategory, event::String, idx=nothing, val=nothing, desc=nothing)
     push!(runner.events, AlgorithmEvent(
         Int64(floor(datetime2unix(now()) * 1000)),
         category,
         event,
         idx,
-        val
+        val,
+        desc
     ))
 end
 
@@ -48,21 +49,29 @@ function run_algo(runner::BubbleSortRunner, input_data::Vector{Int}, mode::Algor
     runner.comparisons = 0
     runner.swaps = 0
 
+    if mode == visualization
+        add_event!(runner, initial, "initial", nothing, copy(arr), "Initial state")
+    end
+
     for i in 1:n
         for j in 1:(n - i)
             runner.comparisons += 1
             if mode == visualization
-                add_event!(runner, comparison, "compare", [j-1, j], [arr[j], arr[j+1]])
+                add_event!(runner, comparison, "compare", [j-1, j], [arr[j], arr[j+1]], "Comparing $(arr[j]) and $(arr[j+1])")
             end
             
             if arr[j] > arr[j+1]
                 arr[j], arr[j+1] = arr[j+1], arr[j]
                 runner.swaps += 1
                 if mode == visualization
-                    add_event!(runner, array_mutation, "swap", [j-1, j], [arr[j], arr[j+1]])
+                    add_event!(runner, array_mutation, "swap", [j-1, j], [arr[j], arr[j+1]], "Swapping $(arr[j]) and $(arr[j+1])")
                 end
             end
         end
+    end
+
+    if mode == visualization
+        add_event!(runner, final, "final", nothing, copy(arr), "Sorted state")
     end
 
     end_time = now()
@@ -102,13 +111,17 @@ function run_algo(runner::QuickSortRunner, input_data::Vector{Int}, mode::Algori
     runner.comparisons = 0
     runner.swaps = 0
 
+    if mode == visualization
+        add_event!(runner, initial, "initial", nothing, copy(arr), "Initial state")
+    end
+
     function partition!(low, high)
         pivot = arr[high]
         i = low - 1
         for j in low:high-1
             runner.comparisons += 1
             if mode == visualization
-                add_event!(runner, comparison, "compare pivot", [j-1, high-1], [arr[j], pivot])
+                add_event!(runner, comparison, "compare pivot", [j-1, high-1], [arr[j], pivot], "Comparing $(arr[j]) with pivot $pivot")
             end
             
             if arr[j] <= pivot
@@ -116,14 +129,14 @@ function run_algo(runner::QuickSortRunner, input_data::Vector{Int}, mode::Algori
                 arr[i], arr[j] = arr[j], arr[i]
                 runner.swaps += 1
                 if mode == visualization
-                    add_event!(runner, array_mutation, "swap", [i-1, j-1], [arr[i], arr[j]])
+                    add_event!(runner, array_mutation, "swap", [i-1, j-1], [arr[i], arr[j]], "Swapping $(arr[i]) and $(arr[j])")
                 end
             end
         end
         arr[i+1], arr[high] = arr[high], arr[i+1]
         runner.swaps += 1
         if mode == visualization
-            add_event!(runner, array_mutation, "swap pivot", [i, high-1], [arr[i+1], arr[high]])
+            add_event!(runner, array_mutation, "swap pivot", [i, high-1], [arr[i+1], arr[high]], "Placing pivot at correct position")
         end
         return i + 1
     end
@@ -137,6 +150,10 @@ function run_algo(runner::QuickSortRunner, input_data::Vector{Int}, mode::Algori
     end
 
     quick_sort!(1, length(arr))
+
+    if mode == visualization
+        add_event!(runner, final, "final", nothing, copy(arr), "Sorted state")
+    end
 
     end_time = now()
     time_ms = float(Dates.value(end_time - start_time))
@@ -175,6 +192,10 @@ function run_algo(runner::MergeSortRunner, input_data::Vector{Int}, mode::Algori
     runner.comparisons = 0
     runner.swaps = 0
 
+    if mode == visualization
+        add_event!(runner, initial, "initial", nothing, copy(arr), "Initial state")
+    end
+
     function merge!(l, m, r)
         left_arr = arr[l:m]
         right_arr = arr[m+1:r]
@@ -185,7 +206,7 @@ function run_algo(runner::MergeSortRunner, input_data::Vector{Int}, mode::Algori
         while i <= length(left_arr) && j <= length(right_arr)
             runner.comparisons += 1
             if mode == visualization
-                add_event!(runner, comparison, "compare", [l+i-2, m+j-1], [left_arr[i], right_arr[j]])
+                add_event!(runner, comparison, "compare", [l+i-2, m+j-1], [left_arr[i], right_arr[j]], "Comparing elements from left and right sub-arrays")
             end
             
             if left_arr[i] <= right_arr[j]
@@ -197,7 +218,7 @@ function run_algo(runner::MergeSortRunner, input_data::Vector{Int}, mode::Algori
             end
             
             if mode == visualization
-                add_event!(runner, array_mutation, "overwrite", [k-1], [arr[k]])
+                add_event!(runner, array_mutation, "overwrite", [k-1], [arr[k]], "Merging value $(arr[k]) back to array")
             end
             k += 1
         end
@@ -205,7 +226,7 @@ function run_algo(runner::MergeSortRunner, input_data::Vector{Int}, mode::Algori
         while i <= length(left_arr)
             arr[k] = left_arr[i]
             if mode == visualization
-                add_event!(runner, array_mutation, "overwrite", [k-1], [arr[k]])
+                add_event!(runner, array_mutation, "overwrite", [k-1], [arr[k]], "Merging remaining left elements")
             end
             i += 1
             k += 1
@@ -214,7 +235,7 @@ function run_algo(runner::MergeSortRunner, input_data::Vector{Int}, mode::Algori
         while j <= length(right_arr)
             arr[k] = right_arr[j]
             if mode == visualization
-                add_event!(runner, array_mutation, "overwrite", [k-1], [arr[k]])
+                add_event!(runner, array_mutation, "overwrite", [k-1], [arr[k]], "Merging remaining right elements")
             end
             j += 1
             k += 1
@@ -231,6 +252,10 @@ function run_algo(runner::MergeSortRunner, input_data::Vector{Int}, mode::Algori
     end
 
     merge_sort!(1, length(arr))
+
+    if mode == visualization
+        add_event!(runner, final, "final", nothing, copy(arr), "Sorted state")
+    end
 
     end_time = now()
     time_ms = float(Dates.value(end_time - start_time))
@@ -270,19 +295,23 @@ function run_algo(runner::InsertionSortRunner, input_data::Vector{Int}, mode::Al
     runner.comparisons = 0
     runner.swaps = 0
 
+    if mode == visualization
+        add_event!(runner, initial, "initial", nothing, copy(arr), "Initial state")
+    end
+
     for i in 2:n
         key = arr[i]
         j = i - 1
         while j >= 1
             runner.comparisons += 1
             if mode == visualization
-                add_event!(runner, comparison, "compare", [j-1, j], [arr[j], key])
+                add_event!(runner, comparison, "compare", [j-1, i-1], [arr[j], key], "Comparing $(arr[j]) with key $key")
             end
             
             if arr[j] > key
                 arr[j+1] = arr[j]
                 if mode == visualization
-                    add_event!(runner, array_mutation, "shift", [j], [arr[j+1]])
+                    add_event!(runner, array_mutation, "shift", [j], [arr[j+1]], "Shifting element forward")
                 end
                 j -= 1
             else
@@ -291,8 +320,12 @@ function run_algo(runner::InsertionSortRunner, input_data::Vector{Int}, mode::Al
         end
         arr[j+1] = key
         if mode == visualization
-            add_event!(runner, array_mutation, "insert", [j], [arr[j+1]])
+            add_event!(runner, array_mutation, "insert", [j], [arr[j+1]], "Inserting key at correct position")
         end
+    end
+
+    if mode == visualization
+        add_event!(runner, final, "final", nothing, copy(arr), "Sorted state")
     end
 
     end_time = now()
@@ -333,12 +366,16 @@ function run_algo(runner::SelectionSortRunner, input_data::Vector{Int}, mode::Al
     runner.comparisons = 0
     runner.swaps = 0
 
+    if mode == visualization
+        add_event!(runner, initial, "initial", nothing, copy(arr), "Initial state")
+    end
+
     for i in 1:n
         min_idx = i
         for j in (i+1):n
             runner.comparisons += 1
             if mode == visualization
-                add_event!(runner, comparison, "compare to min", [j-1, min_idx-1], [arr[j], arr[min_idx]])
+                add_event!(runner, comparison, "compare to min", [j-1, min_idx-1], [arr[j], arr[min_idx]], "Comparing $(arr[j]) with current min $(arr[min_idx])")
             end
             if arr[j] < arr[min_idx]
                 min_idx = j
@@ -348,9 +385,13 @@ function run_algo(runner::SelectionSortRunner, input_data::Vector{Int}, mode::Al
             arr[i], arr[min_idx] = arr[min_idx], arr[i]
             runner.swaps += 1
             if mode == visualization
-                add_event!(runner, array_mutation, "swap min", [i-1, min_idx-1], [arr[i], arr[min_idx]])
+                add_event!(runner, array_mutation, "swap min", [i-1, min_idx-1], [arr[i], arr[min_idx]], "Swapping element at $i with minimum at $min_idx")
             end
         end
+    end
+
+    if mode == visualization
+        add_event!(runner, final, "final", nothing, copy(arr), "Sorted state")
     end
 
     end_time = now()
@@ -391,6 +432,10 @@ function run_algo(runner::HeapSortRunner, input_data::Vector{Int}, mode::Algorit
     runner.comparisons = 0
     runner.swaps = 0
 
+    if mode == visualization
+        add_event!(runner, initial, "initial", nothing, copy(arr), "Initial state")
+    end
+
     function heapify!(n, i)
         largest = i
         l = 2 * i
@@ -399,7 +444,7 @@ function run_algo(runner::HeapSortRunner, input_data::Vector{Int}, mode::Algorit
         if l <= n
             runner.comparisons += 1
             if mode == visualization
-                add_event!(runner, comparison, "compare left", [l-1, largest-1], [arr[l], arr[largest]])
+                add_event!(runner, comparison, "compare left", [l-1, largest-1], [arr[l], arr[largest]], "Comparing left child $(arr[l]) with parent $(arr[largest])")
             end
             if arr[l] > arr[largest]
                 largest = l
@@ -409,7 +454,7 @@ function run_algo(runner::HeapSortRunner, input_data::Vector{Int}, mode::Algorit
         if r <= n
             runner.comparisons += 1
             if mode == visualization
-                add_event!(runner, comparison, "compare right", [r-1, largest-1], [arr[r], arr[largest]])
+                add_event!(runner, comparison, "compare right", [r-1, largest-1], [arr[r], arr[largest]], "Comparing right child $(arr[r]) with parent $(arr[largest])")
             end
             if arr[r] > arr[largest]
                 largest = r
@@ -420,7 +465,7 @@ function run_algo(runner::HeapSortRunner, input_data::Vector{Int}, mode::Algorit
             arr[i], arr[largest] = arr[largest], arr[i]
             runner.swaps += 1
             if mode == visualization
-                add_event!(runner, array_mutation, "swap in heap", [i-1, largest-1], [arr[i], arr[largest]])
+                add_event!(runner, array_mutation, "swap in heap", [i-1, largest-1], [arr[i], arr[largest]], "Swapping parent with larger child")
             end
             heapify!(n, largest)
         end
@@ -436,9 +481,13 @@ function run_algo(runner::HeapSortRunner, input_data::Vector{Int}, mode::Algorit
         arr[i], arr[1] = arr[1], arr[i]
         runner.swaps += 1
         if mode == visualization
-            add_event!(runner, array_mutation, "move root to end", [0, i-1], [arr[1], arr[i]])
+            add_event!(runner, array_mutation, "move root to end", [0, i-1], [arr[1], arr[i]], "Moving heap root $(arr[1]) to position $(i-1)")
         end
         heapify!(i-1, 1)
+    end
+
+    if mode == visualization
+        add_event!(runner, final, "final", nothing, copy(arr), "Sorted state")
     end
 
     end_time = now()
@@ -479,6 +528,10 @@ function run_algo(runner::ShellSortRunner, input_data::Vector{Int}, mode::Algori
     runner.comparisons = 0
     runner.swaps = 0
 
+    if mode == visualization
+        add_event!(runner, initial, "initial", nothing, copy(arr), "Initial state")
+    end
+
     gap = floor(Int, n/2)
     while gap > 0
         for i in (gap+1):n
@@ -487,13 +540,13 @@ function run_algo(runner::ShellSortRunner, input_data::Vector{Int}, mode::Algori
             while j > gap
                 runner.comparisons += 1
                 if mode == visualization
-                    add_event!(runner, comparison, "compare in gap", [j-gap-1, j-1], [arr[j-gap], temp])
+                    add_event!(runner, comparison, "compare in gap", [j-gap-1, j-1], [arr[j-gap], temp], "Comparing elements with gap $gap")
                 end
                 
                 if arr[j - gap] > temp
                     arr[j] = arr[j - gap]
                     if mode == visualization
-                        add_event!(runner, array_mutation, "shift by gap", [j-1], [arr[j]])
+                        add_event!(runner, array_mutation, "shift by gap", [j-1], [arr[j]], "Shifting element forward by gap")
                     end
                     j -= gap
                 else
@@ -502,10 +555,14 @@ function run_algo(runner::ShellSortRunner, input_data::Vector{Int}, mode::Algori
             end
             arr[j] = temp
             if mode == visualization
-                add_event!(runner, array_mutation, "insert in gap", [j-1], [arr[j]])
+                add_event!(runner, array_mutation, "insert in gap", [j-1], [arr[j]], "Inserting element at gap position")
             end
         end
         gap = floor(Int, gap/2)
+    end
+
+    if mode == visualization
+        add_event!(runner, final, "final", nothing, copy(arr), "Sorted state")
     end
 
     end_time = now()

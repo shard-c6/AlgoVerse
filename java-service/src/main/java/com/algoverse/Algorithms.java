@@ -15,9 +15,13 @@ public class Algorithms {
         public long timestamp;
 
         public Event(int[] array, List<Integer> highlighted, String category, String event, String description) {
-            this.values = new ArrayList<>();
-            for (int val : array) {
-                this.values.add(val);
+            if (array != null) {
+                this.values = new ArrayList<>();
+                for (int val : array) {
+                    this.values.add(val);
+                }
+            } else {
+                this.values = null;
             }
             this.indices = highlighted != null ? highlighted : new ArrayList<>();
             this.category = category;
@@ -62,7 +66,7 @@ public class Algorithms {
             this.events = events;
             this.metrics = new Metrics(time_ms);
             
-            if (algorithm.equals("bubble_sort") || algorithm.equals("insertion_sort") || algorithm.equals("selection_sort")) {
+            if (algorithm.equals("bubble_sort") || algorithm.equals("insertion_sort") || algorithm.equals("selection_sort") || algorithm.equals("shell_sort")) {
                 this.complexity = new Complexity("O(n^2)", "O(1)");
             } else if (algorithm.equals("quick_sort") || algorithm.equals("merge_sort") || algorithm.equals("heap_sort")) {
                 this.complexity = new Complexity("O(n log n)", algorithm.equals("merge_sort") ? "O(n)" : "O(log n)");
@@ -74,41 +78,47 @@ public class Algorithms {
         }
     }
 
+    private static void pushEvent(List<Event> events, int[] arr, List<Integer> highlighted, String category, String event, String description, boolean visualization) {
+        if (visualization) {
+            events.add(new Event(arr, highlighted, category, event, description));
+        }
+    }
+
     public static AlgorithmResult runBubbleSort(int[] arr, boolean visualization) {
         List<Event> events = new ArrayList<>();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "initial", "start", "Initial state"));
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Bubble Sort", visualization);
         long start = System.nanoTime();
         
         int n = arr.length;
         for (int i = 0; i < n - 1; i++) {
             boolean swapped = false;
             for (int j = 0; j < n - i - 1; j++) {
-                if (visualization) events.add(new Event(arr, Arrays.asList(j, j + 1), "comparison", "compare", "Comparing elements"));
+                pushEvent(events, arr, Arrays.asList(j, j + 1), "comparison", "compare", "Comparing elements at index " + j + " and " + (j + 1), visualization);
                 if (arr[j] > arr[j + 1]) {
                     int temp = arr[j];
                     arr[j] = arr[j + 1];
                     arr[j + 1] = temp;
                     swapped = true;
-                    if (visualization) events.add(new Event(arr, Arrays.asList(j, j + 1), "array_mutation", "swap", "Swapped elements"));
+                    pushEvent(events, arr, Arrays.asList(j, j + 1), "array_mutation", "swap", "Swapped " + arr[j+1] + " and " + arr[j], visualization);
                 }
             }
             if (!swapped) break;
         }
         
         long end = System.nanoTime();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "final", "end", "Final sorted state"));
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Bubble Sort complete", visualization);
         return new AlgorithmResult("bubble_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
     }
 
     public static AlgorithmResult runQuickSort(int[] arr, boolean visualization) {
         List<Event> events = new ArrayList<>();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "initial", "start", "Initial state"));
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Quick Sort", visualization);
         long start = System.nanoTime();
         
         quickSortHelper(arr, 0, arr.length - 1, events, visualization);
         
         long end = System.nanoTime();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "final", "end", "Final sorted state"));
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Quick Sort complete", visualization);
         return new AlgorithmResult("quick_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
     }
 
@@ -122,33 +132,34 @@ public class Algorithms {
 
     private static int partition(int[] arr, int low, int high, List<Event> events, boolean visualization) {
         int pivot = arr[high];
+        pushEvent(events, arr, Arrays.asList(high), "comparison", "pivot", "Chosen pivot: " + pivot, visualization);
         int i = low - 1;
         for (int j = low; j < high; j++) {
-            if (visualization) events.add(new Event(arr, Arrays.asList(j, high), "comparison", "compare", "Comparing with pivot"));
+            pushEvent(events, arr, Arrays.asList(j, high), "comparison", "compare", "Comparing " + arr[j] + " with pivot " + pivot, visualization);
             if (arr[j] < pivot) {
                 i++;
                 int temp = arr[i];
                 arr[i] = arr[j];
                 arr[j] = temp;
-                if (visualization) events.add(new Event(arr, Arrays.asList(i, j), "array_mutation", "swap", "Swapping elements"));
+                pushEvent(events, arr, Arrays.asList(i, j), "array_mutation", "swap", "Swapped " + arr[j] + " and " + arr[i], visualization);
             }
         }
         int temp = arr[i + 1];
         arr[i + 1] = arr[high];
         arr[high] = temp;
-        if (visualization) events.add(new Event(arr, Arrays.asList(i + 1, high), "array_mutation", "swap", "Placing pivot in correct position"));
+        pushEvent(events, arr, Arrays.asList(i + 1, high), "array_mutation", "partition", "Placed pivot " + pivot + " at final position", visualization);
         return i + 1;
     }
 
     public static AlgorithmResult runMergeSort(int[] arr, boolean visualization) {
         List<Event> events = new ArrayList<>();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "initial", "start", "Initial state"));
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Merge Sort", visualization);
         long start = System.nanoTime();
         
         mergeSortHelper(arr, 0, arr.length - 1, events, visualization);
         
         long end = System.nanoTime();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "final", "end", "Final sorted state"));
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Merge Sort complete", visualization);
         return new AlgorithmResult("merge_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
     }
 
@@ -173,7 +184,7 @@ public class Algorithms {
         int i = 0, j = 0;
         int k = left;
         while (i < n1 && j < n2) {
-            if (visualization) events.add(new Event(arr, Arrays.asList(left + i, mid + 1 + j), "comparison", "compare", "Comparing subarrays"));
+            pushEvent(events, arr, Arrays.asList(left + i, mid + 1 + j), "comparison", "compare", "Comparing elements from sub-arrays", visualization);
             if (L[i] <= R[j]) {
                 arr[k] = L[i];
                 i++;
@@ -181,18 +192,18 @@ public class Algorithms {
                 arr[k] = R[j];
                 j++;
             }
-            if (visualization) events.add(new Event(arr, Arrays.asList(k), "array_mutation", "merge", "Merging elements back"));
+            pushEvent(events, arr, Arrays.asList(k), "array_mutation", "merge", "Merged element " + arr[k] + " back to main array", visualization);
             k++;
         }
         while (i < n1) {
             arr[k] = L[i];
-            if (visualization) events.add(new Event(arr, Arrays.asList(k), "array_mutation", "merge", "Copying remaining elements"));
+            pushEvent(events, arr, Arrays.asList(k), "array_mutation", "merge", "Copying remaining element " + arr[k] + " from left sub-array", visualization);
             i++;
             k++;
         }
         while (j < n2) {
             arr[k] = R[j];
-            if (visualization) events.add(new Event(arr, Arrays.asList(k), "array_mutation", "merge", "Copying remaining elements"));
+            pushEvent(events, arr, Arrays.asList(k), "array_mutation", "merge", "Copying remaining element " + arr[k] + " from right sub-array", visualization);
             j++;
             k++;
         }
@@ -200,40 +211,40 @@ public class Algorithms {
 
     public static AlgorithmResult runInsertionSort(int[] arr, boolean visualization) {
         List<Event> events = new ArrayList<>();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "initial", "start", "Initial state"));
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Insertion Sort", visualization);
         long start = System.nanoTime();
         
         int n = arr.length;
         for (int i = 1; i < n; ++i) {
             int key = arr[i];
             int j = i - 1;
-            if (visualization) events.add(new Event(arr, Arrays.asList(i), "comparison", "pick", "Picking element to insert"));
+            pushEvent(events, arr, Arrays.asList(i), "comparison", "pick", "Picking element " + key + " to insert", visualization);
             
             while (j >= 0 && arr[j] > key) {
-                if (visualization) events.add(new Event(arr, Arrays.asList(j, j + 1), "comparison", "compare", "Comparing with sorted sub-array"));
+                pushEvent(events, arr, Arrays.asList(j, j + 1), "comparison", "compare", "Comparing " + arr[j] + " with " + key, visualization);
                 arr[j + 1] = arr[j];
-                if (visualization) events.add(new Event(arr, Arrays.asList(j, j + 1), "array_mutation", "shift", "Shifting elements"));
+                pushEvent(events, arr, Arrays.asList(j, j + 1), "array_mutation", "shift", "Shifting " + arr[j] + " to the right", visualization);
                 j = j - 1;
             }
             arr[j + 1] = key;
-            if (visualization) events.add(new Event(arr, Arrays.asList(j + 1), "array_mutation", "insert", "Inserting element"));
+            pushEvent(events, arr, Arrays.asList(j + 1), "array_mutation", "insert", "Inserted " + key + " at index " + (j + 1), visualization);
         }
         
         long end = System.nanoTime();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "final", "end", "Final sorted state"));
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Insertion Sort complete", visualization);
         return new AlgorithmResult("insertion_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
     }
 
     public static AlgorithmResult runSelectionSort(int[] arr, boolean visualization) {
         List<Event> events = new ArrayList<>();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "initial", "start", "Initial state"));
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Selection Sort", visualization);
         long start = System.nanoTime();
         
         int n = arr.length;
         for (int i = 0; i < n - 1; i++) {
             int min_idx = i;
             for (int j = i + 1; j < n; j++) {
-                if (visualization) events.add(new Event(arr, Arrays.asList(min_idx, j), "comparison", "compare", "Looking for minimum"));
+                pushEvent(events, arr, Arrays.asList(min_idx, j), "comparison", "compare", "Comparing " + arr[j] + " with current minimum " + arr[min_idx], visualization);
                 if (arr[j] < arr[min_idx]) {
                     min_idx = j;
                 }
@@ -242,18 +253,18 @@ public class Algorithms {
                 int temp = arr[min_idx];
                 arr[min_idx] = arr[i];
                 arr[i] = temp;
-                if (visualization) events.add(new Event(arr, Arrays.asList(i, min_idx), "array_mutation", "swap", "Swapping minimum into place"));
+                pushEvent(events, arr, Arrays.asList(i, min_idx), "array_mutation", "swap", "Swapped " + arr[min_idx] + " and new minimum " + arr[i], visualization);
             }
         }
         
         long end = System.nanoTime();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "final", "end", "Final sorted state"));
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Selection Sort complete", visualization);
         return new AlgorithmResult("selection_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
     }
 
     public static AlgorithmResult runHeapSort(int[] arr, boolean visualization) {
         List<Event> events = new ArrayList<>();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "initial", "start", "Initial state"));
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Heap Sort", visualization);
         long start = System.nanoTime();
         
         int n = arr.length;
@@ -263,16 +274,16 @@ public class Algorithms {
         }
         
         for (int i = n - 1; i > 0; i--) {
-            if (visualization) events.add(new Event(arr, Arrays.asList(0, i), "comparison", "pick", "Picking root to swap"));
+            pushEvent(events, arr, Arrays.asList(0, i), "comparison", "pick", "Picking root element " + arr[0] + " to move to end", visualization);
             int temp = arr[0];
             arr[0] = arr[i];
             arr[i] = temp;
-            if (visualization) events.add(new Event(arr, Arrays.asList(0, i), "array_mutation", "swap", "Swapping root with last element"));
+            pushEvent(events, arr, Arrays.asList(0, i), "array_mutation", "swap", "Swapped root with index " + i, visualization);
             heapify(arr, i, 0, events, visualization);
         }
         
         long end = System.nanoTime();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "final", "end", "Final sorted state"));
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Heap Sort complete", visualization);
         return new AlgorithmResult("heap_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
     }
 
@@ -282,27 +293,27 @@ public class Algorithms {
         int r = 2 * i + 2;
         
         if (l < n) {
-            if (visualization) events.add(new Event(arr, Arrays.asList(largest, l), "comparison", "compare", "Comparing nodes"));
+            pushEvent(events, arr, Arrays.asList(largest, l), "comparison", "compare", "Comparing parent with left child", visualization);
             if (arr[l] > arr[largest]) largest = l;
         }
         if (r < n) {
-            if (visualization) events.add(new Event(arr, Arrays.asList(largest, r), "comparison", "compare", "Comparing nodes"));
+            pushEvent(events, arr, Arrays.asList(largest, r), "comparison", "compare", "Comparing parent with right child", visualization);
             if (arr[r] > arr[largest]) largest = r;
         }
         
         if (largest != i) {
-            if (visualization) events.add(new Event(arr, Arrays.asList(i, largest), "comparison", "pick", "Node out of order"));
+            pushEvent(events, arr, Arrays.asList(i, largest), "comparison", "pick", "Node at " + i + " is smaller than its child", visualization);
             int swap = arr[i];
             arr[i] = arr[largest];
             arr[largest] = swap;
-            if (visualization) events.add(new Event(arr, Arrays.asList(i, largest), "array_mutation", "swap", "Swapping nodes to maintain heap"));
+            pushEvent(events, arr, Arrays.asList(i, largest), "array_mutation", "swap", "Swapped parent with child to maintain heap property", visualization);
             heapify(arr, n, largest, events, visualization);
         }
     }
 
     public static AlgorithmResult runRadixSort(int[] arr, boolean visualization) {
         List<Event> events = new ArrayList<>();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "initial", "start", "Initial state"));
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Radix Sort", visualization);
         long start = System.nanoTime();
         
         int n = arr.length;
@@ -318,7 +329,7 @@ public class Algorithms {
         }
         
         long end = System.nanoTime();
-        if (visualization) events.add(new Event(arr, new ArrayList<>(), "final", "end", "Final sorted state"));
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Radix Sort complete", visualization);
         return new AlgorithmResult("radix_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
     }
 
@@ -327,7 +338,7 @@ public class Algorithms {
         int[] count = new int[10];
         
         for (int i = 0; i < n; i++) {
-            if (visualization) events.add(new Event(arr, Arrays.asList(i), "comparison", "count", "Counting occurrence of digit"));
+            pushEvent(events, arr, Arrays.asList(i), "comparison", "count", "Counting digit " + ((arr[i] / exp) % 10) + " for element " + arr[i], visualization);
             count[(arr[i] / exp) % 10]++;
         }
         
@@ -343,7 +354,7 @@ public class Algorithms {
         
         for (int i = 0; i < n; i++) {
             arr[i] = output[i];
-            if (visualization) events.add(new Event(arr, Arrays.asList(i), "array_mutation", "place", "Placing element based on digit"));
+            pushEvent(events, arr, Arrays.asList(i), "array_mutation", "place", "Placed " + arr[i] + " based on current digit", visualization);
         }
     }
 }

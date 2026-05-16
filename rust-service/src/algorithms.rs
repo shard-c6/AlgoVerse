@@ -1,5 +1,30 @@
 use crate::contracts::*;
-use std::time::Instant;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
+
+fn get_timestamp() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64
+}
+
+fn push_event(
+    events: &mut Vec<AlgorithmEvent>,
+    category: EventCategory,
+    event: &str,
+    indices: Option<Vec<usize>>,
+    values: Option<Vec<i32>>,
+    description: &str,
+) {
+    events.push(AlgorithmEvent {
+        timestamp: get_timestamp(),
+        category,
+        event: event.to_string(),
+        indices,
+        values,
+        description: Some(description.to_string()),
+    });
+}
 
 pub fn get_complexity(algo: &str) -> AlgorithmComplexity {
     match algo {
@@ -20,34 +45,42 @@ pub fn get_complexity(algo: &str) -> AlgorithmComplexity {
 
 fn bubble_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     let n = data.len();
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+    }
+
     for i in 0..n {
         for j in 0..n.saturating_sub(i).saturating_sub(1) {
             *comps += 1;
             if matches!(mode, AlgorithmMode::Visualization) {
-                events.push(AlgorithmEvent {
-                    timestamp: 0.0,
-                    category: EventCategory::Comparison,
-                    event: "compare".to_string(),
-                    indices: Some(vec![j, j + 1]),
-                    values: Some(vec![serde_json::json!(data[j]), serde_json::json!(data[j + 1])]),
-                    metadata: None,
-                });
+                push_event(
+                    events,
+                    EventCategory::Comparison,
+                    "compare",
+                    Some(vec![j, j + 1]),
+                    Some(vec![data[j], data[j + 1]]),
+                    &format!("Comparing {} and {}", data[j], data[j + 1]),
+                );
             }
             if data[j] > data[j + 1] {
                 data.swap(j, j + 1);
                 *swaps += 1;
                 if matches!(mode, AlgorithmMode::Visualization) {
-                    events.push(AlgorithmEvent {
-                        timestamp: 0.0,
-                        category: EventCategory::ArrayMutation,
-                        event: "swap".to_string(),
-                        indices: Some(vec![j, j + 1]),
-                        values: Some(vec![serde_json::json!(data[j]), serde_json::json!(data[j + 1])]),
-                        metadata: None,
-                    });
+                    push_event(
+                        events,
+                        EventCategory::ArrayMutation,
+                        "swap",
+                        Some(vec![j, j + 1]),
+                        Some(vec![data[j], data[j + 1]]),
+                        &format!("Swapping {} and {}", data[j], data[j + 1]),
+                    );
                 }
             }
         }
+    }
+
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
     }
 }
 
@@ -68,14 +101,14 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
     for j in low..high {
         *comps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::Comparison,
-                event: "compare".to_string(),
-                indices: Some(vec![j, high]),
-                values: Some(vec![serde_json::json!(data[j]), serde_json::json!(pivot)]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::Comparison,
+                "compare",
+                Some(vec![j, high]),
+                Some(vec![data[j], pivot]),
+                &format!("Comparing {} with pivot {}", data[j], pivot),
+            );
         }
         
         if data[j] < pivot {
@@ -83,14 +116,14 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
                 data.swap(i, j);
                 *swaps += 1;
                 if matches!(mode, AlgorithmMode::Visualization) {
-                    events.push(AlgorithmEvent {
-                        timestamp: 0.0,
-                        category: EventCategory::ArrayMutation,
-                        event: "swap".to_string(),
-                        indices: Some(vec![i, j]),
-                        values: Some(vec![serde_json::json!(data[i]), serde_json::json!(data[j])]),
-                        metadata: None,
-                    });
+                    push_event(
+                        events,
+                        EventCategory::ArrayMutation,
+                        "swap",
+                        Some(vec![i, j]),
+                        Some(vec![data[i], data[j]]),
+                        &format!("Swapping {} and {}", data[i], data[j]),
+                    );
                 }
             }
             i += 1;
@@ -101,14 +134,14 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
         data.swap(i, high);
         *swaps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::ArrayMutation,
-                event: "swap".to_string(),
-                indices: Some(vec![i, high]),
-                values: Some(vec![serde_json::json!(data[i]), serde_json::json!(data[high])]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::ArrayMutation,
+                "swap_pivot",
+                Some(vec![i, high]),
+                Some(vec![data[i], data[high]]),
+                &format!("Placing pivot {} at correct position", data[i]),
+            );
         }
     }
     
@@ -117,15 +150,27 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
 
 fn quick_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if !data.is_empty() {
+        if matches!(mode, AlgorithmMode::Visualization) {
+            push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+        }
         let n = data.len();
         quick_sort_helper(data, 0, n - 1, mode, events, comps, swaps);
+        if matches!(mode, AlgorithmMode::Visualization) {
+            push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+        }
     }
 }
 
 fn merge_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if data.is_empty() { return; }
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+    }
     let n = data.len();
     merge_sort_helper(data, 0, n - 1, mode, events, comps, swaps);
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+    }
 }
 
 fn merge_sort_helper(data: &mut Vec<i32>, left: usize, right: usize, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
@@ -145,14 +190,14 @@ fn merge(data: &mut Vec<i32>, left: usize, mid: usize, right: usize, mode: &Algo
     while i <= mid && j <= right {
         *comps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::Comparison,
-                event: "compare".to_string(),
-                indices: Some(vec![i, j]),
-                values: Some(vec![serde_json::json!(data[i]), serde_json::json!(data[j])]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::Comparison,
+                "compare",
+                Some(vec![i, j]),
+                Some(vec![data[i], data[j]]),
+                &format!("Comparing {} and {}", data[i], data[j]),
+            );
         }
         if data[i] <= data[j] {
             temp.push(data[i]);
@@ -178,19 +223,22 @@ fn merge(data: &mut Vec<i32>, left: usize, mid: usize, right: usize, mode: &Algo
         data[idx] = val;
         *swaps += 1; // treating write as swap for metric parity with other languages
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::ArrayMutation,
-                event: "overwrite".to_string(),
-                indices: Some(vec![idx]),
-                values: Some(vec![serde_json::json!(val)]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::ArrayMutation,
+                "overwrite",
+                Some(vec![idx]),
+                Some(vec![val]),
+                &format!("Merging value {} back to array", val),
+            );
         }
     }
 }
 
 fn insertion_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+    }
     let n = data.len();
     for i in 1..n {
         let key = data[i];
@@ -199,27 +247,27 @@ fn insertion_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
         while j > 0 {
             *comps += 1;
             if matches!(mode, AlgorithmMode::Visualization) {
-                events.push(AlgorithmEvent {
-                    timestamp: 0.0,
-                    category: EventCategory::Comparison,
-                    event: "compare".to_string(),
-                    indices: Some(vec![j - 1, i]),
-                    values: Some(vec![serde_json::json!(data[j - 1]), serde_json::json!(key)]),
-                    metadata: None,
-                });
+                push_event(
+                    events,
+                    EventCategory::Comparison,
+                    "compare",
+                    Some(vec![j - 1, i]),
+                    Some(vec![data[j - 1], key]),
+                    &format!("Comparing {} with key {}", data[j - 1], key),
+                );
             }
             if data[j - 1] > key {
                 data[j] = data[j - 1];
                 *swaps += 1;
                 if matches!(mode, AlgorithmMode::Visualization) {
-                    events.push(AlgorithmEvent {
-                        timestamp: 0.0,
-                        category: EventCategory::ArrayMutation,
-                        event: "overwrite".to_string(),
-                        indices: Some(vec![j]),
-                        values: Some(vec![serde_json::json!(data[j])]),
-                        metadata: None,
-                    });
+                    push_event(
+                        events,
+                        EventCategory::ArrayMutation,
+                        "shift",
+                        Some(vec![j]),
+                        Some(vec![data[j]]),
+                        &format!("Shifting {} to the right", data[j]),
+                    );
                 }
                 j -= 1;
             } else {
@@ -229,33 +277,39 @@ fn insertion_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
         data[j] = key;
         *swaps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::ArrayMutation,
-                event: "overwrite".to_string(),
-                indices: Some(vec![j]),
-                values: Some(vec![serde_json::json!(data[j])]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::ArrayMutation,
+                "insert",
+                Some(vec![j]),
+                Some(vec![data[j]]),
+                &format!("Inserting key {} at position {}", key, j),
+            );
         }
+    }
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
     }
 }
 
 fn selection_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+    }
     let n = data.len();
     for i in 0..n {
         let mut min_idx = i;
         for j in (i + 1)..n {
             *comps += 1;
             if matches!(mode, AlgorithmMode::Visualization) {
-                events.push(AlgorithmEvent {
-                    timestamp: 0.0,
-                    category: EventCategory::Comparison,
-                    event: "compare".to_string(),
-                    indices: Some(vec![j, min_idx]),
-                    values: Some(vec![serde_json::json!(data[j]), serde_json::json!(data[min_idx])]),
-                    metadata: None,
-                });
+                push_event(
+                    events,
+                    EventCategory::Comparison,
+                    "compare",
+                    Some(vec![j, min_idx]),
+                    Some(vec![data[j], data[min_idx]]),
+                    &format!("Comparing {} with current min {}", data[j], data[min_idx]),
+                );
             }
             if data[j] < data[min_idx] {
                 min_idx = j;
@@ -265,21 +319,27 @@ fn selection_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
             data.swap(i, min_idx);
             *swaps += 1;
             if matches!(mode, AlgorithmMode::Visualization) {
-                events.push(AlgorithmEvent {
-                    timestamp: 0.0,
-                    category: EventCategory::ArrayMutation,
-                    event: "swap".to_string(),
-                    indices: Some(vec![i, min_idx]),
-                    values: Some(vec![serde_json::json!(data[i]), serde_json::json!(data[min_idx])]),
-                    metadata: None,
-                });
+                push_event(
+                    events,
+                    EventCategory::ArrayMutation,
+                    "swap",
+                    Some(vec![i, min_idx]),
+                    Some(vec![data[i], data[min_idx]]),
+                    &format!("Swapping {} with new minimum {}", data[i], data[min_idx]),
+                );
             }
         }
+    }
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
     }
 }
 
 fn heap_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if data.is_empty() { return; }
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+    }
     let n = data.len();
 
     // Build max heap
@@ -292,16 +352,19 @@ fn heap_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algorit
         data.swap(0, i);
         *swaps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::ArrayMutation,
-                event: "swap".to_string(),
-                indices: Some(vec![0, i]),
-                values: Some(vec![serde_json::json!(data[0]), serde_json::json!(data[i])]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::ArrayMutation,
+                "swap",
+                Some(vec![0, i]),
+                Some(vec![data[0], data[i]]),
+                &format!("Moving root {} to end of heap", data[i]),
+            );
         }
         heapify(data, i, 0, mode, events, comps, swaps);
+    }
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
     }
 }
 
@@ -313,14 +376,14 @@ fn heapify(data: &mut Vec<i32>, n: usize, i: usize, mode: &AlgorithmMode, events
     if left < n {
         *comps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::Comparison,
-                event: "compare".to_string(),
-                indices: Some(vec![left, largest]),
-                values: Some(vec![serde_json::json!(data[left]), serde_json::json!(data[largest])]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::Comparison,
+                "compare",
+                Some(vec![left, largest]),
+                Some(vec![data[left], data[largest]]),
+                &format!("Comparing child {} with parent {}", data[left], data[largest]),
+            );
         }
         if data[left] > data[largest] {
             largest = left;
@@ -330,14 +393,14 @@ fn heapify(data: &mut Vec<i32>, n: usize, i: usize, mode: &AlgorithmMode, events
     if right < n {
         *comps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::Comparison,
-                event: "compare".to_string(),
-                indices: Some(vec![right, largest]),
-                values: Some(vec![serde_json::json!(data[right]), serde_json::json!(data[largest])]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::Comparison,
+                "compare",
+                Some(vec![right, largest]),
+                Some(vec![data[right], data[largest]]),
+                &format!("Comparing child {} with parent {}", data[right], data[largest]),
+            );
         }
         if data[right] > data[largest] {
             largest = right;
@@ -348,20 +411,23 @@ fn heapify(data: &mut Vec<i32>, n: usize, i: usize, mode: &AlgorithmMode, events
         data.swap(i, largest);
         *swaps += 1;
         if matches!(mode, AlgorithmMode::Visualization) {
-            events.push(AlgorithmEvent {
-                timestamp: 0.0,
-                category: EventCategory::ArrayMutation,
-                event: "swap".to_string(),
-                indices: Some(vec![i, largest]),
-                values: Some(vec![serde_json::json!(data[i]), serde_json::json!(data[largest])]),
-                metadata: None,
-            });
+            push_event(
+                events,
+                EventCategory::ArrayMutation,
+                "swap",
+                Some(vec![i, largest]),
+                Some(vec![data[i], data[largest]]),
+                &format!("Swapping parent {} with child {}", data[largest], data[i]),
+            );
         }
         heapify(data, n, largest, mode, events, comps, swaps);
     }
 }
 
 fn shell_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+    }
     let n = data.len();
     let mut gap = n / 2;
 
@@ -373,27 +439,27 @@ fn shell_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algori
             while j >= gap {
                 *comps += 1;
                 if matches!(mode, AlgorithmMode::Visualization) {
-                    events.push(AlgorithmEvent {
-                        timestamp: 0.0,
-                        category: EventCategory::Comparison,
-                        event: "compare".to_string(),
-                        indices: Some(vec![j - gap, i]),
-                        values: Some(vec![serde_json::json!(data[j - gap]), serde_json::json!(temp)]),
-                        metadata: None,
-                    });
+                    push_event(
+                        events,
+                        EventCategory::Comparison,
+                        "compare",
+                        Some(vec![j - gap, i]),
+                        Some(vec![data[j - gap], temp]),
+                        &format!("Comparing elements at indices {} and {} with gap {}", j - gap, i, gap),
+                    );
                 }
                 if data[j - gap] > temp {
                     data[j] = data[j - gap];
                     *swaps += 1;
                     if matches!(mode, AlgorithmMode::Visualization) {
-                        events.push(AlgorithmEvent {
-                            timestamp: 0.0,
-                            category: EventCategory::ArrayMutation,
-                            event: "overwrite".to_string(),
-                            indices: Some(vec![j]),
-                            values: Some(vec![serde_json::json!(data[j])]),
-                            metadata: None,
-                        });
+                        push_event(
+                            events,
+                            EventCategory::ArrayMutation,
+                            "shift",
+                            Some(vec![j]),
+                            Some(vec![data[j]]),
+                            &format!("Shifting element {} forward", data[j]),
+                        );
                     }
                     j -= gap;
                 } else {
@@ -403,17 +469,20 @@ fn shell_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algori
             data[j] = temp;
             *swaps += 1;
             if matches!(mode, AlgorithmMode::Visualization) {
-                events.push(AlgorithmEvent {
-                    timestamp: 0.0,
-                    category: EventCategory::ArrayMutation,
-                    event: "overwrite".to_string(),
-                    indices: Some(vec![j]),
-                    values: Some(vec![serde_json::json!(data[j])]),
-                    metadata: None,
-                });
+                push_event(
+                    events,
+                    EventCategory::ArrayMutation,
+                    "insert",
+                    Some(vec![j]),
+                    Some(vec![data[j]]),
+                    &format!("Inserting {} at correct gap position", data[j]),
+                );
             }
         }
         gap /= 2;
+    }
+    if matches!(mode, AlgorithmMode::Visualization) {
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
     }
 }
 

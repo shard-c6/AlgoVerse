@@ -14,6 +14,8 @@ export const VisualizationLevel = {
 export type VisualizationLevel = (typeof VisualizationLevel)[keyof typeof VisualizationLevel];
 
 export const EventCategory = {
+    INITIAL: "initial",
+    FINAL: "final",
     ARRAY_MUTATION: "array_mutation",
     COMPARISON: "comparison",
     TRAVERSAL: "traversal",
@@ -29,7 +31,8 @@ export interface AlgorithmEvent {
     category: EventCategory;
     event: string;
     indices?: number[];
-    values?: any[];
+    values?: number[];
+    description?: string;
     metadata?: Record<string, any>;
 }
 

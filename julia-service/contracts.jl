@@ -10,28 +10,30 @@ export AlgorithmEvent, AlgorithmMetrics, AlgorithmComplexity, VersionedAlgorithm
 
 @enum AlgorithmMode visualization benchmark
 @enum VisualizationLevel minimal educational verbose
-@enum EventCategory array_mutation comparison traversal recursion backtracking graph_action
+@enum EventCategory initial final array_mutation comparison traversal recursion backtracking graph_action
 
 struct AlgorithmEvent
     timestamp::Int64
     category::EventCategory
     event::String
     indices::Union{Nothing, Vector{Int}}
-    values::Union{Nothing, Vector{Any}}
-    metadata::Union{Nothing, Dict{String, Any}}
+    values::Union{Nothing, Vector{Int}}
+    description::Union{Nothing, String}
 end
 
-# Outer constructors for convenience and to avoid recursion
-# We use Any for idx and val to allow flexible input, but they'll be converted by the struct constructor or we can convert them here.
-function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, val)
+# Outer constructors for convenience
+function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, val, desc)
     idx_conv = idx === nothing ? nothing : Vector{Int}(idx)
-    val_conv = val === nothing ? nothing : Vector{Any}(val)
-    return AlgorithmEvent(ts, cat, ev, idx_conv, val_conv, nothing)
+    val_conv = val === nothing ? nothing : Vector{Int}(val)
+    return AlgorithmEvent(ts, cat, ev, idx_conv, val_conv, desc)
+end
+
+function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, val)
+    return AlgorithmEvent(ts, cat, ev, idx, val, nothing)
 end
 
 function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx)
-    idx_conv = idx === nothing ? nothing : Vector{Int}(idx)
-    return AlgorithmEvent(ts, cat, ev, idx_conv, nothing, nothing)
+    return AlgorithmEvent(ts, cat, ev, idx, nothing, nothing)
 end
 
 function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String)
