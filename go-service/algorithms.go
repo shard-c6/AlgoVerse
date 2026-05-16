@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -11,52 +12,47 @@ type SortingState struct {
 	Swaps       int
 }
 
-func (s *SortingState) Compare(a, b int, i, j int) bool {
-	s.Comparisons++
+func (s *SortingState) lineMeta(line int) map[string]interface{} {
+	if line <= 0 {
+		return nil
+	}
+	return map[string]interface{}{"line_number": line}
+}
+
+func (s *SortingState) PushEvent(category EventCategory, event string, indices, values []int, desc string, line int) {
 	if s.Mode == Visualization {
 		s.Events = append(s.Events, AlgorithmEvent{
 			Timestamp:   time.Now().UnixMilli(),
-			Category:    Comparison,
-			Event:       "comparison",
-			Indices:     []int{i, j},
-			Description: fmt.Sprintf("Comparing index %d and %d", i, j),
+			Category:    category,
+			Event:       event,
+			Indices:     indices,
+			Values:      values,
+			Description: desc,
+			Metadata:    s.lineMeta(line),
 		})
+	}
+}
+
+func (s *SortingState) Compare(a, b int, i, j int, line int) bool {
+	s.Comparisons++
+	if s.Mode == Visualization {
+		s.PushEvent(Comparison, "compare", []int{i, j}, []int{a, b}, fmt.Sprintf("Comparing index %d and %d", i, j), line)
 	}
 	return a < b
 }
 
-func (s *SortingState) Swap(data []int, i, j int) {
+func (s *SortingState) Swap(data []int, i, j int, line int) {
 	data[i], data[j] = data[j], data[i]
 	s.Swaps++
 	if s.Mode == Visualization {
-		stateCopy := make([]int, len(data))
-		copy(stateCopy, data)
-		s.Events = append(s.Events, AlgorithmEvent{
-			Timestamp:   time.Now().UnixMilli(),
-			Category:    ArrayMutation,
-			Event:       "swap",
-			Indices:     []int{i, j},
-			Values:      []int{data[i], data[j]},
-			Description: fmt.Sprintf("Swapped index %d and %d", i, j),
-			State:       stateCopy,
-		})
+		s.PushEvent(ArrayMutation, "swap", []int{i, j}, []int{data[i], data[j]}, fmt.Sprintf("Swapped index %d and %d", i, j), line)
 	}
 }
 
-func (s *SortingState) Mutation(data []int, i, val int, eventName, desc string) {
+func (s *SortingState) Mutation(data []int, i, val int, eventName, desc string, line int) {
 	data[i] = val
 	if s.Mode == Visualization {
-		stateCopy := make([]int, len(data))
-		copy(stateCopy, data)
-		s.Events = append(s.Events, AlgorithmEvent{
-			Timestamp:   time.Now().UnixMilli(),
-			Category:    ArrayMutation,
-			Event:       eventName,
-			Indices:     []int{i},
-			Values:      []int{val},
-			Description: desc,
-			State:       stateCopy,
-		})
+		s.PushEvent(ArrayMutation, eventName, []int{i}, []int{val}, desc, line)
 	}
 }
 
@@ -79,13 +75,7 @@ func runSort(algoName string, data []int, mode AlgorithmMode) VersionedAlgorithm
 	arr := cloneData(data)
 
 	if mode == Visualization {
-		state.Events = append(state.Events, AlgorithmEvent{
-			Timestamp:   time.Now().UnixMilli(),
-			Category:    Initial,
-			Event:       "start",
-			Values:      cloneData(arr),
-			Description: "Initial state",
-		})
+		state.PushEvent(Initial, "initial", nil, cloneData(arr), "Initial state", 0)
 	}
 
 	complexity := Complexity{Time: "O(n^2)", Space: "O(1)"}
@@ -113,13 +103,7 @@ func runSort(algoName string, data []int, mode AlgorithmMode) VersionedAlgorithm
 	}
 
 	if mode == Visualization {
-		state.Events = append(state.Events, AlgorithmEvent{
-			Timestamp:   time.Now().UnixMilli(),
-			Category:    Final,
-			Event:       "end",
-			Values:      cloneData(arr),
-			Description: "Sorted state",
-		})
+		state.PushEvent(Final, "final", nil, cloneData(arr), "Sorted state", 0)
 	}
 
 	elapsed := time.Since(start)
@@ -150,27 +134,17 @@ func bubbleSort(state *SortingState, data []int) {
 	n := len(data)
 	for i := 0; i < n; i++ {
 		for j := 0; j < n-i-1; j++ {
-			if !state.Compare(data[j], data[j+1]) && data[j] != data[j+1] { // data[j] > data[j+1]
-				state.Swap(data, j, j+1)
-			} else {
-				state.Comparisons++ // the first compare call could be misleading, so doing explicit >
+			state.Comparisons++
+			if state.Mode == Visualization {
+				state.PushEvent(Comparison, "compare", []int{j, j + 1}, []int{data[j], data[j+1]}, fmt.Sprintf("Comparing %d and %d", data[j], data[j+1]), 5)
+			}
+			if data[j] > data[j+1] {
+				state.Swap(data, j, j+1, 6)
 			}
 		}
 	}
 }
 
-// Re-doing the explicit ones because state.Compare is for '<'
-func bubbleSortFix(state *SortingState, data []int) {
-	n := len(data)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n-i-1; j++ {
-			state.Comparisons++
-			if data[j] > data[j+1] {
-				state.Swap(data, j, j+1)
-			}
-		}
-	}
-}
 
 // QUICK SORT
 func partition(state *SortingState, data []int, low, high int) int {
@@ -178,12 +152,15 @@ func partition(state *SortingState, data []int, low, high int) int {
 	i := low - 1
 	for j := low; j < high; j++ {
 		state.Comparisons++
+		if state.Mode == Visualization {
+			state.PushEvent(Comparison, "compare", []int{j, high}, []int{data[j], pivot}, "Comparing with pivot", 5)
+		}
 		if data[j] <= pivot {
 			i++
-			state.Swap(data, i, j)
+			state.Swap(data, i, j, 7)
 		}
 	}
-	state.Swap(data, i+1, high)
+	state.Swap(data, i+1, high, 10)
 	return i + 1
 }
 
@@ -209,57 +186,27 @@ func merge(state *SortingState, data []int, left, mid, right int) {
 	i, j, k := 0, 0, left
 	for i < n1 && j < n2 {
 		state.Comparisons++
+		if state.Mode == Visualization {
+			state.PushEvent(Comparison, "compare", []int{left + i, mid + 1 + j}, []int{L[i], R[j]}, "Comparing left and right elements", 10)
+		}
 		if L[i] <= R[j] {
-			data[k] = L[i]
+			state.Mutation(data, k, L[i], "merge", "Merging from left", 10)
 			i++
 		} else {
-			data[k] = R[j]
+			state.Mutation(data, k, R[j], "merge", "Merging from right", 10)
 			j++
-		}
-		if state.Mode == Visualization {
-			stateCopy := make([]int, len(data))
-			copy(stateCopy, data)
-			state.Events = append(state.Events, AlgorithmEvent{
-				Timestamp:   time.Now().UnixMilli(),
-				Category:    ArrayMutation,
-				State:       stateCopy,
-				Event:       "merge",
-				Description: "Merged elements",
-			})
 		}
 		k++
 	}
 
 	for i < n1 {
-		data[k] = L[i]
-		if state.Mode == Visualization {
-			stateCopy := make([]int, len(data))
-			copy(stateCopy, data)
-			state.Events = append(state.Events, AlgorithmEvent{
-				Timestamp:   time.Now().UnixMilli(),
-				Category:    ArrayMutation,
-				State:       stateCopy,
-				Event:       "merge",
-				Description: "Merged elements",
-			})
-		}
+		state.Mutation(data, k, L[i], "merge", "Merging remaining left", 13)
 		i++
 		k++
 	}
 
 	for j < n2 {
-		data[k] = R[j]
-		if state.Mode == Visualization {
-			stateCopy := make([]int, len(data))
-			copy(stateCopy, data)
-			state.Events = append(state.Events, AlgorithmEvent{
-				Timestamp:   time.Now().UnixMilli(),
-				Category:    ArrayMutation,
-				State:       stateCopy,
-				Event:       "merge",
-				Description: "Merged elements",
-			})
-		}
+		state.Mutation(data, k, R[j], "merge", "Merging remaining right", 14)
 		j++
 		k++
 	}
@@ -282,36 +229,17 @@ func insertionSort(state *SortingState, data []int) {
 		j := i - 1
 		for j >= 0 {
 			state.Comparisons++
+			if state.Mode == Visualization {
+				state.PushEvent(Comparison, "compare", []int{j, i}, []int{data[j], key}, "Comparing with key", 5)
+			}
 			if data[j] > key {
-				data[j+1] = data[j]
+				state.Mutation(data, j+1, data[j], "shift", "Shifted element", 6)
 				j--
-				if state.Mode == Visualization {
-					stateCopy := make([]int, len(data))
-					copy(stateCopy, data)
-					state.Events = append(state.Events, AlgorithmEvent{
-						Timestamp:   time.Now().UnixMilli(),
-						Category:    ArrayMutation,
-						State:       stateCopy,
-						Event:       "shift",
-						Description: "Shifted element",
-					})
-				}
 			} else {
 				break
 			}
 		}
-		data[j+1] = key
-		if state.Mode == Visualization {
-			stateCopy := make([]int, len(data))
-			copy(stateCopy, data)
-			state.Events = append(state.Events, AlgorithmEvent{
-				Timestamp:   time.Now().UnixMilli(),
-				Category:    ArrayMutation,
-				State:       stateCopy,
-				Event:       "insert",
-				Description: "Inserted element",
-			})
-		}
+		state.Mutation(data, j+1, key, "insert", "Inserted key", 9)
 	}
 }
 
@@ -322,12 +250,15 @@ func selectionSort(state *SortingState, data []int) {
 		minIdx := i
 		for j := i + 1; j < n; j++ {
 			state.Comparisons++
+			if state.Mode == Visualization {
+				state.PushEvent(Comparison, "compare", []int{j, minIdx}, []int{data[j], data[minIdx]}, "Comparing for minimum", 6)
+			}
 			if data[j] < data[minIdx] {
 				minIdx = j
 			}
 		}
 		if minIdx != i {
-			state.Swap(data, i, minIdx)
+			state.Swap(data, i, minIdx, 8)
 		}
 	}
 }
@@ -338,18 +269,28 @@ func heapify(state *SortingState, data []int, n, i int) {
 	left := 2*i + 1
 	right := 2*i + 2
 
-	state.Comparisons++
-	if left < n && data[left] > data[largest] {
-		largest = left
+	if left < n {
+		state.Comparisons++
+		if state.Mode == Visualization {
+			state.PushEvent(Comparison, "compare", []int{left, largest}, []int{data[left], data[largest]}, "Comparing with largest", 4)
+		}
+		if data[left] > data[largest] {
+			largest = left
+		}
 	}
 
-	state.Comparisons++
-	if right < n && data[right] > data[largest] {
-		largest = right
+	if right < n {
+		state.Comparisons++
+		if state.Mode == Visualization {
+			state.PushEvent(Comparison, "compare", []int{right, largest}, []int{data[right], data[largest]}, "Comparing with largest", 5)
+		}
+		if data[right] > data[largest] {
+			largest = right
+		}
 	}
 
 	if largest != i {
-		state.Swap(data, i, largest)
+		state.Swap(data, i, largest, 7)
 		heapify(state, data, n, largest)
 	}
 }
@@ -362,7 +303,7 @@ func heapSort(state *SortingState, data []int) {
 	}
 
 	for i := n - 1; i > 0; i-- {
-		state.Swap(data, 0, i)
+		state.Swap(data, 0, i, 16)
 		heapify(state, data, i, 0)
 	}
 }
@@ -376,36 +317,17 @@ func shellSort(state *SortingState, data []int) {
 			j := i
 			for j >= gap {
 				state.Comparisons++
+				if state.Mode == Visualization {
+					state.PushEvent(Comparison, "compare", []int{j - gap, i}, []int{data[j-gap], temp}, "Comparing elements", 7)
+				}
 				if data[j-gap] > temp {
-					data[j] = data[j-gap]
+					state.Mutation(data, j, data[j-gap], "shift", "Shifted element", 8)
 					j -= gap
-					if state.Mode == Visualization {
-						stateCopy := make([]int, len(data))
-						copy(stateCopy, data)
-						state.Events = append(state.Events, AlgorithmEvent{
-							Timestamp:   time.Now().UnixMilli(),
-							Category:    ArrayMutation,
-							State:       stateCopy,
-							Event:       "shift",
-							Description: "Shifted element",
-						})
-					}
 				} else {
 					break
 				}
 			}
-			data[j] = temp
-			if state.Mode == Visualization {
-				stateCopy := make([]int, len(data))
-				copy(stateCopy, data)
-				state.Events = append(state.Events, AlgorithmEvent{
-					Timestamp:   time.Now().UnixMilli(),
-					Category:    ArrayMutation,
-					State:       stateCopy,
-					Event:       "insert",
-					Description: "Inserted element",
-				})
-			}
+			state.Mutation(data, j, temp, "insert", "Inserted element", 11)
 		}
 	}
 }

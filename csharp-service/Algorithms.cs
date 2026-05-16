@@ -26,6 +26,10 @@ public class StateEvent
     [JsonPropertyName("description")]
     public string Description { get; set; } = "";
 
+    [JsonPropertyName("metadata")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, object>? Metadata { get; set; }
+
     [JsonPropertyName("timestamp")]
     public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 }
@@ -88,8 +92,13 @@ public class SortingState
 {
     public AlgorithmMode Mode { get; set; }
     public List<StateEvent> Events { get; set; } = new();
+
+    public Dictionary<string, object> Line(int lineNumber)
+    {
+        return new Dictionary<string, object> { { "line_number", lineNumber } };
+    }
     
-    public void AddEvent(List<int> data, List<int> indices, string category, string eventName, string desc)
+    public void AddEvent(List<int> data, List<int> indices, string category, string eventName, string desc, Dictionary<string, object>? metadata = null)
     {
         if (Mode == AlgorithmMode.visualization)
         {
@@ -99,7 +108,8 @@ public class SortingState
                 Indices = indices,
                 Category = category,
                 Event = eventName,
-                Description = desc
+                Description = desc,
+                Metadata = metadata
             });
         }
     }
@@ -177,18 +187,15 @@ public static class Algorithms
         int n = data.Count;
         for (int i = 0; i < n; i++)
         {
-            bool swapped = false;
             for (int j = 0; j < n - i - 1; j++)
             {
-                state.AddEvent(data, new List<int> { j, j + 1 }, "comparison", "compare", "Comparing elements");
+                state.AddEvent(data, new List<int> { j, j + 1 }, "comparison", "compare", "Comparing elements", state.Line(5));
                 if (data[j] > data[j + 1])
                 {
                     (data[j], data[j + 1]) = (data[j + 1], data[j]);
-                    swapped = true;
-                    state.AddEvent(data, new List<int> { j, j + 1 }, "array_mutation", "swap", "Swapped elements");
+                    state.AddEvent(data, new List<int> { j, j + 1 }, "array_mutation", "swap", "Swapped elements", state.Line(6));
                 }
             }
-            if (!swapped) break;
         }
     }
 
@@ -196,19 +203,18 @@ public static class Algorithms
     {
         int pivot = data[high];
         int i = low - 1;
-        state.AddEvent(data, new List<int> { high }, "comparison", "pivot", $"Pivot chosen: {pivot}");
         for (int j = low; j < high; j++)
         {
-            state.AddEvent(data, new List<int> { j, high }, "comparison", "compare", "Comparing with pivot");
+            state.AddEvent(data, new List<int> { j, high }, "comparison", "compare", "Comparing with pivot", state.Line(5));
             if (data[j] <= pivot)
             {
                 i++;
                 (data[i], data[j]) = (data[j], data[i]);
-                state.AddEvent(data, new List<int> { i, j }, "array_mutation", "swap", "Swapped elements");
+                state.AddEvent(data, new List<int> { i, j }, "array_mutation", "swap", "Swapped elements", state.Line(7));
             }
         }
         (data[i + 1], data[high]) = (data[high], data[i + 1]);
-        state.AddEvent(data, new List<int> { i + 1, high }, "array_mutation", "partition", "Pivot placed in correct position");
+        state.AddEvent(data, new List<int> { i + 1, high }, "array_mutation", "partition", "Pivot placed in correct position", state.Line(13));
         return i + 1;
     }
 
@@ -237,25 +243,26 @@ public static class Algorithms
 
         while (i < n1 && j < n2)
         {
-            state.AddEvent(data, new List<int> { left + i, mid + 1 + j }, "comparison", "compare", "Comparing elements from sub-arrays");
+            state.AddEvent(data, new List<int> { left + i, mid + 1 + j }, "comparison", "compare", "Comparing elements", state.Line(8));
             if (L[i] <= R[j])
             {
                 data[k] = L[i];
+                state.AddEvent(data, new List<int> { k }, "array_mutation", "merge", "Merging from left", state.Line(8));
                 i++;
             }
             else
             {
                 data[k] = R[j];
+                state.AddEvent(data, new List<int> { k }, "array_mutation", "merge", "Merging from right", state.Line(9));
                 j++;
             }
-            state.AddEvent(data, new List<int> { k }, "array_mutation", "merge", "Merging element back to main array");
             k++;
         }
 
         while (i < n1)
         {
             data[k] = L[i];
-            state.AddEvent(data, new List<int> { k }, "array_mutation", "merge", "Merging remaining elements");
+            state.AddEvent(data, new List<int> { k }, "array_mutation", "merge", "Merging remaining left", state.Line(11));
             i++;
             k++;
         }
@@ -263,7 +270,7 @@ public static class Algorithms
         while (j < n2)
         {
             data[k] = R[j];
-            state.AddEvent(data, new List<int> { k }, "array_mutation", "merge", "Merging remaining elements");
+            state.AddEvent(data, new List<int> { k }, "array_mutation", "merge", "Merging remaining right", state.Line(12));
             j++;
             k++;
         }
@@ -287,14 +294,13 @@ public static class Algorithms
         {
             int key = data[i];
             int j = i - 1;
-            state.AddEvent(data, new List<int> { i }, "comparison", "select", $"Selecting element {key} to insert");
             while (j >= 0)
             {
-                state.AddEvent(data, new List<int> { j }, "comparison", "compare", $"Comparing with {data[j]}");
+                state.AddEvent(data, new List<int> { j, i }, "comparison", "compare", "Comparing elements", state.Line(6));
                 if (data[j] > key)
                 {
                     data[j + 1] = data[j];
-                    state.AddEvent(data, new List<int> { j, j + 1 }, "array_mutation", "shift", "Shifting element to the right");
+                    state.AddEvent(data, new List<int> { j, j + 1 }, "array_mutation", "shift", "Shifting element", state.Line(7));
                     j--;
                 }
                 else
@@ -303,30 +309,28 @@ public static class Algorithms
                 }
             }
             data[j + 1] = key;
-            state.AddEvent(data, new List<int> { j + 1 }, "array_mutation", "insert", $"Inserted {key} at index {j + 1}");
+            state.AddEvent(data, new List<int> { j + 1 }, "array_mutation", "insert", "Inserted element", state.Line(9));
         }
     }
 
     private static void SelectionSort(SortingState state, List<int> data)
     {
         int n = data.Count;
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n - 1; i++)
         {
             int minIdx = i;
-            state.AddEvent(data, new List<int> { i }, "comparison", "select", $"Finding minimum for index {i}");
             for (int j = i + 1; j < n; j++)
             {
-                state.AddEvent(data, new List<int> { minIdx, j }, "comparison", "compare", "Checking for smaller element");
+                state.AddEvent(data, new List<int> { minIdx, j }, "comparison", "compare", "Comparing elements", state.Line(6));
                 if (data[j] < data[minIdx])
                 {
                     minIdx = j;
-                    state.AddEvent(data, new List<int> { minIdx }, "comparison", "new_min", "New minimum found");
                 }
             }
             if (minIdx != i)
             {
                 (data[i], data[minIdx]) = (data[minIdx], data[i]);
-                state.AddEvent(data, new List<int> { i, minIdx }, "array_mutation", "swap", "Swapped minimum into position");
+                state.AddEvent(data, new List<int> { i, minIdx }, "array_mutation", "swap", "Swapped elements", state.Line(9));
             }
         }
     }
@@ -339,7 +343,7 @@ public static class Algorithms
 
         if (left < n)
         {
-            state.AddEvent(data, new List<int> { largest, left }, "comparison", "compare", "Comparing with left child");
+            state.AddEvent(data, new List<int> { largest, left }, "comparison", "compare", "Comparing with left child", state.Line(3));
             if (data[left] > data[largest])
             {
                 largest = left;
@@ -348,7 +352,7 @@ public static class Algorithms
 
         if (right < n)
         {
-            state.AddEvent(data, new List<int> { largest, right }, "comparison", "compare", "Comparing with right child");
+            state.AddEvent(data, new List<int> { largest, right }, "comparison", "compare", "Comparing with right child", state.Line(4));
             if (data[right] > data[largest])
             {
                 largest = right;
@@ -358,7 +362,7 @@ public static class Algorithms
         if (largest != i)
         {
             (data[i], data[largest]) = (data[largest], data[i]);
-            state.AddEvent(data, new List<int> { i, largest }, "array_mutation", "swap", "Heapify: swapping elements");
+            state.AddEvent(data, new List<int> { i, largest }, "array_mutation", "swap", "Swapped elements", state.Line(7));
             Heapify(state, data, n, largest);
         }
     }
@@ -367,7 +371,7 @@ public static class Algorithms
     {
         int n = data.Count;
 
-        state.AddEvent(data, new List<int>(), "initial", "heapify_start", "Building max heap");
+        state.AddEvent(data, new List<int>(), "initial", "heapify_start", "Building max heap", state.Line(737));
         for (int i = n / 2 - 1; i >= 0; i--)
         {
             Heapify(state, data, n, i);
@@ -376,7 +380,7 @@ public static class Algorithms
         for (int i = n - 1; i > 0; i--)
         {
             (data[0], data[i]) = (data[i], data[0]);
-            state.AddEvent(data, new List<int> { 0, i }, "array_mutation", "swap", "Swapping root with last element");
+            state.AddEvent(data, new List<int> { 0, i }, "array_mutation", "swap", "Swapping root with last element", state.Line(738));
             Heapify(state, data, i, 0);
         }
     }
@@ -386,19 +390,17 @@ public static class Algorithms
         int n = data.Count;
         for (int gap = n / 2; gap > 0; gap /= 2)
         {
-            state.AddEvent(data, new List<int>(), "comparison", "gap", $"Current gap: {gap}");
             for (int i = gap; i < n; i++)
             {
                 int temp = data[i];
                 int j = i;
-                state.AddEvent(data, new List<int> { i }, "comparison", "select", $"Current element: {temp}");
                 while (j >= gap)
                 {
-                    state.AddEvent(data, new List<int> { j - gap, j }, "comparison", "compare", $"Comparing elements with gap {gap}");
+                    state.AddEvent(data, new List<int> { j - gap, j }, "comparison", "compare", "Comparing elements", state.Line(6));
                     if (data[j - gap] > temp)
                     {
                         data[j] = data[j - gap];
-                        state.AddEvent(data, new List<int> { j - gap, j }, "array_mutation", "shift", "Shifting element");
+                        state.AddEvent(data, new List<int> { j - gap, j }, "array_mutation", "shift", "Shifting element", state.Line(7));
                         j -= gap;
                     }
                     else
@@ -407,7 +409,7 @@ public static class Algorithms
                     }
                 }
                 data[j] = temp;
-                state.AddEvent(data, new List<int> { j }, "array_mutation", "insert", "Placed element in its gap position");
+                state.AddEvent(data, new List<int> { j }, "array_mutation", "insert", "Inserted element", state.Line(10));
             }
         }
     }

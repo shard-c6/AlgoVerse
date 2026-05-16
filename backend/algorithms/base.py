@@ -18,13 +18,14 @@ class AlgorithmRunner(ABC):
         self.comparisons = 0
         self.swaps = 0
 
-    def add_event(self, category: EventCategory, event: str, indices: List[int] = None, values: List[Any] = None):
+    def add_event(self, category: EventCategory, event: str, indices: List[int] = None, values: List[Any] = None, metadata: dict = None):
         self.events.append(AlgorithmEvent(
             timestamp=int(time.time() * 1000),
             category=category,
             event=event,
             indices=indices,
-            values=values
+            values=values,
+            metadata=metadata
         ))
 
     @abstractmethod

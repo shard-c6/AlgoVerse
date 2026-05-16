@@ -18,13 +18,14 @@ const (
 )
 
 type AlgorithmEvent struct {
-	Timestamp   int64         `json:"timestamp"`
-	Category    EventCategory `json:"category"`
-	Event       string        `json:"event"`
-	Indices     []int         `json:"indices,omitempty"`
-	Values      []int         `json:"values,omitempty"`
-	Description string        `json:"description,omitempty"`
-	State       []int         `json:"state,omitempty"` // Legacy support
+	Timestamp   int64                  `json:"timestamp"`
+	Category    EventCategory          `json:"category"`
+	Event       string                 `json:"event"`
+	Indices     []int                  `json:"indices,omitempty"`
+	Values      []int                  `json:"values,omitempty"`
+	Description string                 `json:"description,omitempty"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	State       []int                  `json:"state,omitempty"` // Legacy support
 }
 
 type PerformanceMetrics struct {

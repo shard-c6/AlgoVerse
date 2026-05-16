@@ -77,3 +77,4 @@
 - [x] Update frontend dashboard with buttons for new languages
 - [x] Update `run_local.sh` to launch new services
 - [x] Test and verify all pipelines
+- [x] Synchronize CodeViewer language selection with active execution engine

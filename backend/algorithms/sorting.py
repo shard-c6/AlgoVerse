@@ -23,13 +23,13 @@ class BubbleSortRunner(AlgorithmRunner):
             for j in range(0, n - i - 1):
                 self.comparisons += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.COMPARISON, "compare", indices=[j, j+1], values=[arr[j], arr[j+1]])
+                    self.add_event(EventCategory.COMPARISON, "compare", indices=[j, j+1], values=[arr[j], arr[j+1]], metadata={'line_number': 5})
                 
                 if arr[j] > arr[j + 1]:
                     arr[j], arr[j + 1] = arr[j + 1], arr[j]
                     self.swaps += 1
                     if mode == AlgorithmMode.VISUALIZATION:
-                        self.add_event(EventCategory.ARRAY_MUTATION, "swap", indices=[j, j+1], values=[arr[j], arr[j+1]])
+                        self.add_event(EventCategory.ARRAY_MUTATION, "swap", indices=[j, j+1], values=[arr[j], arr[j+1]], metadata={'line_number': 6})
 
         end_time = time.time()
         time_ms = (end_time - start_time) * 1000
@@ -56,19 +56,19 @@ class QuickSortRunner(AlgorithmRunner):
             for j in range(low, high):
                 self.comparisons += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.COMPARISON, "compare pivot", indices=[j, high], values=[arr[j], pivot])
+                    self.add_event(EventCategory.COMPARISON, "compare pivot", indices=[j, high], values=[arr[j], pivot], metadata={'line_number': 5})
                 
                 if arr[j] <= pivot:
                     i += 1
                     arr[i], arr[j] = arr[j], arr[i]
                     self.swaps += 1
                     if mode == AlgorithmMode.VISUALIZATION:
-                        self.add_event(EventCategory.ARRAY_MUTATION, "swap", indices=[i, j], values=[arr[i], arr[j]])
+                        self.add_event(EventCategory.ARRAY_MUTATION, "swap", indices=[i, j], values=[arr[i], arr[j]], metadata={'line_number': 7})
             
             arr[i + 1], arr[high] = arr[high], arr[i + 1]
             self.swaps += 1
             if mode == AlgorithmMode.VISUALIZATION:
-                self.add_event(EventCategory.ARRAY_MUTATION, "swap pivot", indices=[i + 1, high], values=[arr[i + 1], arr[high]])
+                self.add_event(EventCategory.ARRAY_MUTATION, "swap pivot", indices=[i + 1, high], values=[arr[i + 1], arr[high]], metadata={'line_number': 8})
             return i + 1
 
         def quick_sort(low, high):
@@ -112,30 +112,32 @@ class MergeSortRunner(AlgorithmRunner):
             while i < len(left) and j < len(right):
                 self.comparisons += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.COMPARISON, "compare", indices=[l+i, m+1+j], values=[left[i], right[j]])
+                    self.add_event(EventCategory.COMPARISON, "compare", indices=[l+i, m+1+j], values=[left[i], right[j]], metadata={'line_number': 8})
                 
                 if left[i] <= right[j]:
                     arr[k] = left[i]
+                    if mode == AlgorithmMode.VISUALIZATION:
+                        self.add_event(EventCategory.ARRAY_MUTATION, "overwrite", indices=[k], values=[arr[k]], metadata={'line_number': 9})
                     i += 1
                 else:
                     arr[k] = right[j]
+                    if mode == AlgorithmMode.VISUALIZATION:
+                        self.add_event(EventCategory.ARRAY_MUTATION, "overwrite", indices=[k], values=[arr[k]], metadata={'line_number': 12})
                     j += 1
                 
-                if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.ARRAY_MUTATION, "overwrite", indices=[k], values=[arr[k]])
                 k += 1
 
             while i < len(left):
                 arr[k] = left[i]
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.ARRAY_MUTATION, "overwrite", indices=[k], values=[arr[k]])
+                    self.add_event(EventCategory.ARRAY_MUTATION, "overwrite", indices=[k], values=[arr[k]], metadata={'line_number': 17})
                 i += 1
                 k += 1
 
             while j < len(right):
                 arr[k] = right[j]
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.ARRAY_MUTATION, "overwrite", indices=[k], values=[arr[k]])
+                    self.add_event(EventCategory.ARRAY_MUTATION, "overwrite", indices=[k], values=[arr[k]], metadata={'line_number': 22})
                 j += 1
                 k += 1
 
@@ -165,18 +167,18 @@ class InsertionSortRunner(AlgorithmRunner):
             while j >= 0:
                 self.comparisons += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.COMPARISON, "compare", indices=[j, j+1], values=[arr[j], key])
+                    self.add_event(EventCategory.COMPARISON, "compare", indices=[j, j+1], values=[arr[j], key], metadata={'line_number': 5})
                 
                 if arr[j] > key:
                     arr[j + 1] = arr[j]
                     if mode == AlgorithmMode.VISUALIZATION:
-                        self.add_event(EventCategory.ARRAY_MUTATION, "shift", indices=[j+1], values=[arr[j+1]])
+                        self.add_event(EventCategory.ARRAY_MUTATION, "shift", indices=[j+1], values=[arr[j+1]], metadata={'line_number': 6})
                     j -= 1
                 else:
                     break
             arr[j + 1] = key
             if mode == AlgorithmMode.VISUALIZATION:
-                self.add_event(EventCategory.ARRAY_MUTATION, "insert", indices=[j+1], values=[arr[j+1]])
+                self.add_event(EventCategory.ARRAY_MUTATION, "insert", indices=[j+1], values=[arr[j+1]], metadata={'line_number': 8})
 
         end_time = time.time()
         time_ms = (end_time - start_time) * 1000
@@ -202,7 +204,7 @@ class SelectionSortRunner(AlgorithmRunner):
             for j in range(i + 1, n):
                 self.comparisons += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.COMPARISON, "compare to min", indices=[j, min_idx], values=[arr[j], arr[min_idx]])
+                    self.add_event(EventCategory.COMPARISON, "compare to min", indices=[j, min_idx], values=[arr[j], arr[min_idx]], metadata={'line_number': 6})
                 if arr[j] < arr[min_idx]:
                     min_idx = j
             
@@ -210,7 +212,7 @@ class SelectionSortRunner(AlgorithmRunner):
                 arr[i], arr[min_idx] = arr[min_idx], arr[i]
                 self.swaps += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.ARRAY_MUTATION, "swap min", indices=[i, min_idx], values=[arr[i], arr[min_idx]])
+                    self.add_event(EventCategory.ARRAY_MUTATION, "swap min", indices=[i, min_idx], values=[arr[i], arr[min_idx]], metadata={'line_number': 10})
 
         end_time = time.time()
         time_ms = (end_time - start_time) * 1000
@@ -239,14 +241,14 @@ class HeapSortRunner(AlgorithmRunner):
             if l < n:
                 self.comparisons += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.COMPARISON, "compare left", indices=[l, largest], values=[arr[l], arr[largest]])
+                    self.add_event(EventCategory.COMPARISON, "compare left", indices=[l, largest], values=[arr[l], arr[largest]], metadata={'line_number': 6})
                 if arr[l] > arr[largest]:
                     largest = l
 
             if r < n:
                 self.comparisons += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.COMPARISON, "compare right", indices=[r, largest], values=[arr[r], arr[largest]])
+                    self.add_event(EventCategory.COMPARISON, "compare right", indices=[r, largest], values=[arr[r], arr[largest]], metadata={'line_number': 9})
                 if arr[r] > arr[largest]:
                     largest = r
 
@@ -254,7 +256,7 @@ class HeapSortRunner(AlgorithmRunner):
                 arr[i], arr[largest] = arr[largest], arr[i]
                 self.swaps += 1
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.ARRAY_MUTATION, "swap in heap", indices=[i, largest], values=[arr[i], arr[largest]])
+                    self.add_event(EventCategory.ARRAY_MUTATION, "swap in heap", indices=[i, largest], values=[arr[i], arr[largest]], metadata={'line_number': 13})
                 heapify(n, largest)
 
         for i in range(n // 2 - 1, -1, -1):
@@ -264,7 +266,7 @@ class HeapSortRunner(AlgorithmRunner):
             arr[i], arr[0] = arr[0], arr[i]
             self.swaps += 1
             if mode == AlgorithmMode.VISUALIZATION:
-                self.add_event(EventCategory.ARRAY_MUTATION, "move root to end", indices=[0, i], values=[arr[0], arr[i]])
+                self.add_event(EventCategory.ARRAY_MUTATION, "move root to end", indices=[0, i], values=[arr[0], arr[i]], metadata={'line_number': 22})
             heapify(i, 0)
 
         end_time = time.time()
@@ -294,18 +296,18 @@ class ShellSortRunner(AlgorithmRunner):
                 while j >= gap:
                     self.comparisons += 1
                     if mode == AlgorithmMode.VISUALIZATION:
-                        self.add_event(EventCategory.COMPARISON, "compare in gap", indices=[j-gap, j], values=[arr[j-gap], temp])
+                        self.add_event(EventCategory.COMPARISON, "compare in gap", indices=[j-gap, j], values=[arr[j-gap], temp], metadata={'line_number': 9})
                     
                     if arr[j - gap] > temp:
                         arr[j] = arr[j - gap]
                         if mode == AlgorithmMode.VISUALIZATION:
-                            self.add_event(EventCategory.ARRAY_MUTATION, "shift by gap", indices=[j], values=[arr[j]])
+                            self.add_event(EventCategory.ARRAY_MUTATION, "shift by gap", indices=[j], values=[arr[j]], metadata={'line_number': 10})
                         j -= gap
                     else:
                         break
                 arr[j] = temp
                 if mode == AlgorithmMode.VISUALIZATION:
-                    self.add_event(EventCategory.ARRAY_MUTATION, "insert in gap", indices=[j], values=[arr[j]])
+                    self.add_event(EventCategory.ARRAY_MUTATION, "insert in gap", indices=[j], values=[arr[j]], metadata={'line_number': 12})
             gap //= 2
 
         end_time = time.time()

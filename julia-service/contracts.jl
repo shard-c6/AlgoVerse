@@ -5,12 +5,16 @@ using StructTypes
 
 export AlgorithmMode, visualization, benchmark
 export VisualizationLevel, minimal, educational, verbose
-export EventCategory, array_mutation, comparison, traversal, recursion, backtracking, graph_action
+export EventCategory, initial, final, array_mutation, comparison, traversal, recursion, backtracking, graph_action
 export AlgorithmEvent, AlgorithmMetrics, AlgorithmComplexity, VersionedAlgorithmContract
 
 @enum AlgorithmMode visualization benchmark
 @enum VisualizationLevel minimal educational verbose
 @enum EventCategory initial final array_mutation comparison traversal recursion backtracking graph_action
+
+struct EventMetadata
+    line_number::Int
+end
 
 struct AlgorithmEvent
     timestamp::Int64
@@ -19,25 +23,26 @@ struct AlgorithmEvent
     indices::Union{Nothing, Vector{Int}}
     values::Union{Nothing, Vector{Int}}
     description::Union{Nothing, String}
+    metadata::Union{Nothing, EventMetadata}
 end
 
 # Outer constructors for convenience
-function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, val, desc)
+function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, val, desc, metadata=nothing)
     idx_conv = idx === nothing ? nothing : Vector{Int}(idx)
     val_conv = val === nothing ? nothing : Vector{Int}(val)
-    return AlgorithmEvent(ts, cat, ev, idx_conv, val_conv, desc)
+    return AlgorithmEvent(ts, cat, ev, idx_conv, val_conv, desc, metadata)
 end
 
-function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, val)
-    return AlgorithmEvent(ts, cat, ev, idx, val, nothing)
+function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, val, metadata=nothing)
+    return AlgorithmEvent(ts, cat, ev, idx, val, nothing, metadata)
 end
 
-function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx)
-    return AlgorithmEvent(ts, cat, ev, idx, nothing, nothing)
+function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, idx, metadata=nothing)
+    return AlgorithmEvent(ts, cat, ev, idx, nothing, nothing, metadata)
 end
 
-function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String)
-    return AlgorithmEvent(ts, cat, ev, nothing, nothing, nothing)
+function AlgorithmEvent(ts::Int64, cat::EventCategory, ev::String, metadata=nothing)
+    return AlgorithmEvent(ts, cat, ev, nothing, nothing, nothing, metadata)
 end
 
 struct AlgorithmMetrics
@@ -68,6 +73,7 @@ struct VersionedAlgorithmContract
 end
 
 # StructTypes for JSON serialization
+StructTypes.StructType(::Type{EventMetadata}) = StructTypes.Struct()
 StructTypes.StructType(::Type{AlgorithmEvent}) = StructTypes.Struct()
 StructTypes.StructType(::Type{AlgorithmMetrics}) = StructTypes.Struct()
 StructTypes.StructType(::Type{AlgorithmComplexity}) = StructTypes.Struct()

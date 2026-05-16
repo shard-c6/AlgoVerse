@@ -15,6 +15,7 @@ fn push_event(
     indices: Option<Vec<usize>>,
     values: Option<Vec<i32>>,
     description: &str,
+    metadata: Option<serde_json::Value>,
 ) {
     events.push(AlgorithmEvent {
         timestamp: get_timestamp(),
@@ -23,7 +24,12 @@ fn push_event(
         indices,
         values,
         description: Some(description.to_string()),
+        metadata,
     });
+}
+
+fn line_meta(line: u32) -> Option<serde_json::Value> {
+    Some(serde_json::json!({ "line_number": line }))
 }
 
 pub fn get_complexity(algo: &str) -> AlgorithmComplexity {
@@ -46,7 +52,7 @@ pub fn get_complexity(algo: &str) -> AlgorithmComplexity {
 fn bubble_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     let n = data.len();
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state", None);
     }
 
     for i in 0..n {
@@ -60,6 +66,7 @@ fn bubble_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algor
                     Some(vec![j, j + 1]),
                     Some(vec![data[j], data[j + 1]]),
                     &format!("Comparing {} and {}", data[j], data[j + 1]),
+                    line_meta(5),
                 );
             }
             if data[j] > data[j + 1] {
@@ -73,6 +80,7 @@ fn bubble_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algor
                         Some(vec![j, j + 1]),
                         Some(vec![data[j], data[j + 1]]),
                         &format!("Swapping {} and {}", data[j], data[j + 1]),
+                        line_meta(6),
                     );
                 }
             }
@@ -80,7 +88,7 @@ fn bubble_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algor
     }
 
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state", None);
     }
 }
 
@@ -108,6 +116,7 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
                 Some(vec![j, high]),
                 Some(vec![data[j], pivot]),
                 &format!("Comparing {} with pivot {}", data[j], pivot),
+                line_meta(5),
             );
         }
         
@@ -123,6 +132,7 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
                         Some(vec![i, j]),
                         Some(vec![data[i], data[j]]),
                         &format!("Swapping {} and {}", data[i], data[j]),
+                        line_meta(6),
                     );
                 }
             }
@@ -141,6 +151,7 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
                 Some(vec![i, high]),
                 Some(vec![data[i], data[high]]),
                 &format!("Placing pivot {} at correct position", data[i]),
+                line_meta(10),
             );
         }
     }
@@ -151,12 +162,12 @@ fn partition(data: &mut Vec<i32>, low: usize, high: usize, mode: &AlgorithmMode,
 fn quick_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if !data.is_empty() {
         if matches!(mode, AlgorithmMode::Visualization) {
-            push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+            push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state", None);
         }
         let n = data.len();
         quick_sort_helper(data, 0, n - 1, mode, events, comps, swaps);
         if matches!(mode, AlgorithmMode::Visualization) {
-            push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+            push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state", None);
         }
     }
 }
@@ -164,12 +175,12 @@ fn quick_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algori
 fn merge_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if data.is_empty() { return; }
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state", None);
     }
     let n = data.len();
     merge_sort_helper(data, 0, n - 1, mode, events, comps, swaps);
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state", None);
     }
 }
 
@@ -197,6 +208,7 @@ fn merge(data: &mut Vec<i32>, left: usize, mid: usize, right: usize, mode: &Algo
                 Some(vec![i, j]),
                 Some(vec![data[i], data[j]]),
                 &format!("Comparing {} and {}", data[i], data[j]),
+                line_meta(7),
             );
         }
         if data[i] <= data[j] {
@@ -230,6 +242,7 @@ fn merge(data: &mut Vec<i32>, left: usize, mid: usize, right: usize, mode: &Algo
                 Some(vec![idx]),
                 Some(vec![val]),
                 &format!("Merging value {} back to array", val),
+                line_meta(27),
             );
         }
     }
@@ -237,7 +250,7 @@ fn merge(data: &mut Vec<i32>, left: usize, mid: usize, right: usize, mode: &Algo
 
 fn insertion_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state", None);
     }
     let n = data.len();
     for i in 1..n {
@@ -254,6 +267,7 @@ fn insertion_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
                     Some(vec![j - 1, i]),
                     Some(vec![data[j - 1], key]),
                     &format!("Comparing {} with key {}", data[j - 1], key),
+                    line_meta(7),
                 );
             }
             if data[j - 1] > key {
@@ -267,6 +281,7 @@ fn insertion_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
                         Some(vec![j]),
                         Some(vec![data[j]]),
                         &format!("Shifting {} to the right", data[j]),
+                        line_meta(8),
                     );
                 }
                 j -= 1;
@@ -284,17 +299,18 @@ fn insertion_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
                 Some(vec![j]),
                 Some(vec![data[j]]),
                 &format!("Inserting key {} at position {}", key, j),
+                line_meta(11),
             );
         }
     }
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state", None);
     }
 }
 
 fn selection_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state", None);
     }
     let n = data.len();
     for i in 0..n {
@@ -309,6 +325,7 @@ fn selection_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
                     Some(vec![j, min_idx]),
                     Some(vec![data[j], data[min_idx]]),
                     &format!("Comparing {} with current min {}", data[j], data[min_idx]),
+                    line_meta(6),
                 );
             }
             if data[j] < data[min_idx] {
@@ -326,19 +343,20 @@ fn selection_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Al
                     Some(vec![i, min_idx]),
                     Some(vec![data[i], data[min_idx]]),
                     &format!("Swapping {} with new minimum {}", data[i], data[min_idx]),
+                    line_meta(11),
                 );
             }
         }
     }
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state", None);
     }
 }
 
 fn heap_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if data.is_empty() { return; }
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state", None);
     }
     let n = data.len();
 
@@ -359,12 +377,13 @@ fn heap_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algorit
                 Some(vec![0, i]),
                 Some(vec![data[0], data[i]]),
                 &format!("Moving root {} to end of heap", data[i]),
+                line_meta(29),
             );
         }
         heapify(data, i, 0, mode, events, comps, swaps);
     }
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state", None);
     }
 }
 
@@ -383,6 +402,7 @@ fn heapify(data: &mut Vec<i32>, n: usize, i: usize, mode: &AlgorithmMode, events
                 Some(vec![left, largest]),
                 Some(vec![data[left], data[largest]]),
                 &format!("Comparing child {} with parent {}", data[left], data[largest]),
+                line_meta(6),
             );
         }
         if data[left] > data[largest] {
@@ -400,6 +420,7 @@ fn heapify(data: &mut Vec<i32>, n: usize, i: usize, mode: &AlgorithmMode, events
                 Some(vec![right, largest]),
                 Some(vec![data[right], data[largest]]),
                 &format!("Comparing child {} with parent {}", data[right], data[largest]),
+                line_meta(10),
             );
         }
         if data[right] > data[largest] {
@@ -418,6 +439,7 @@ fn heapify(data: &mut Vec<i32>, n: usize, i: usize, mode: &AlgorithmMode, events
                 Some(vec![i, largest]),
                 Some(vec![data[i], data[largest]]),
                 &format!("Swapping parent {} with child {}", data[largest], data[i]),
+                line_meta(15),
             );
         }
         heapify(data, n, largest, mode, events, comps, swaps);
@@ -426,7 +448,7 @@ fn heapify(data: &mut Vec<i32>, n: usize, i: usize, mode: &AlgorithmMode, events
 
 fn shell_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<AlgorithmEvent>, comps: &mut u64, swaps: &mut u64) {
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state");
+        push_event(events, EventCategory::Initial, "initial", None, Some(data.clone()), "Initial state", None);
     }
     let n = data.len();
     let mut gap = n / 2;
@@ -446,6 +468,7 @@ fn shell_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algori
                         Some(vec![j - gap, i]),
                         Some(vec![data[j - gap], temp]),
                         &format!("Comparing elements at indices {} and {} with gap {}", j - gap, i, gap),
+                        line_meta(10),
                     );
                 }
                 if data[j - gap] > temp {
@@ -459,6 +482,7 @@ fn shell_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algori
                             Some(vec![j]),
                             Some(vec![data[j]]),
                             &format!("Shifting element {} forward", data[j]),
+                            line_meta(11),
                         );
                     }
                     j -= gap;
@@ -476,13 +500,14 @@ fn shell_sort(data: &mut Vec<i32>, mode: &AlgorithmMode, events: &mut Vec<Algori
                     Some(vec![j]),
                     Some(vec![data[j]]),
                     &format!("Inserting {} at correct gap position", data[j]),
+                    line_meta(14),
                 );
             }
         }
         gap /= 2;
     }
     if matches!(mode, AlgorithmMode::Visualization) {
-        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state");
+        push_event(events, EventCategory::Final, "final", None, Some(data.clone()), "Sorted state", None);
     }
 }
 
