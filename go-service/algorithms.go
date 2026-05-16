@@ -78,6 +78,16 @@ func runSort(algoName string, data []int, mode AlgorithmMode) VersionedAlgorithm
 
 	arr := cloneData(data)
 
+	if mode == Visualization {
+		state.Events = append(state.Events, AlgorithmEvent{
+			Timestamp:   time.Now().UnixMilli(),
+			Category:    Initial,
+			Event:       "start",
+			Values:      cloneData(arr),
+			Description: "Initial state",
+		})
+	}
+
 	complexity := Complexity{Time: "O(n^2)", Space: "O(1)"}
 
 	switch algoName {
@@ -100,6 +110,16 @@ func runSort(algoName string, data []int, mode AlgorithmMode) VersionedAlgorithm
 	case "shell_sort":
 		complexity.Time = "O(n log n)"
 		shellSort(&state, arr)
+	}
+
+	if mode == Visualization {
+		state.Events = append(state.Events, AlgorithmEvent{
+			Timestamp:   time.Now().UnixMilli(),
+			Category:    Final,
+			Event:       "end",
+			Values:      cloneData(arr),
+			Description: "Sorted state",
+		})
 	}
 
 	elapsed := time.Since(start)

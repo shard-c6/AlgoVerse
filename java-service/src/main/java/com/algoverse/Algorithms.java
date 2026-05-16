@@ -357,4 +357,34 @@ public class Algorithms {
             pushEvent(events, arr, Arrays.asList(i), "array_mutation", "place", "Placed " + arr[i] + " based on current digit", visualization);
         }
     }
+
+    public static AlgorithmResult runShellSort(int[] arr, boolean visualization) {
+        List<Event> events = new ArrayList<>();
+        pushEvent(events, arr, new ArrayList<>(), "initial", "start", "Starting Shell Sort", visualization);
+        long start = System.nanoTime();
+        
+        int n = arr.length;
+        for (int gap = n / 2; gap > 0; gap /= 2) {
+            for (int i = gap; i < n; i++) {
+                int temp = arr[i];
+                int j = i;
+                while (j >= gap) {
+                    pushEvent(events, arr, Arrays.asList(j - gap, i), "comparison", "compare", "Comparing elements with gap " + gap, visualization);
+                    if (arr[j - gap] > temp) {
+                        arr[j] = arr[j - gap];
+                        pushEvent(events, arr, Arrays.asList(j), "array_mutation", "shift", "Shifting element forward", visualization);
+                        j -= gap;
+                    } else {
+                        break;
+                    }
+                }
+                arr[j] = temp;
+                pushEvent(events, arr, Arrays.asList(j), "array_mutation", "insert", "Inserted element at gap position", visualization);
+            }
+        }
+        
+        long end = System.nanoTime();
+        pushEvent(events, arr, new ArrayList<>(), "final", "end", "Shell Sort complete", visualization);
+        return new AlgorithmResult("shell_sort", visualization ? "visualize" : "benchmark", events, (end - start) / 1_000_000.0);
+    }
 }

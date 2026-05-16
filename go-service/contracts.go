@@ -10,6 +10,8 @@ const (
 type EventCategory string
 
 const (
+	Initial       EventCategory = "initial"
+	Final         EventCategory = "final"
 	ArrayMutation EventCategory = "array_mutation"
 	Comparison    EventCategory = "comparison"
 	Traversal     EventCategory = "traversal"
