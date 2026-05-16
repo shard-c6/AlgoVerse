@@ -6,13 +6,22 @@ import (
 
 type SortingState struct {
 	Mode        AlgorithmMode
-	Events      []StateEvent
+	Events      []AlgorithmEvent
 	Comparisons int
 	Swaps       int
 }
 
-func (s *SortingState) Compare(a, b int) bool {
+func (s *SortingState) Compare(a, b int, i, j int) bool {
 	s.Comparisons++
+	if s.Mode == Visualization {
+		s.Events = append(s.Events, AlgorithmEvent{
+			Timestamp:   time.Now().UnixMilli(),
+			Category:    Comparison,
+			Event:       "comparison",
+			Indices:     []int{i, j},
+			Description: fmt.Sprintf("Comparing index %d and %d", i, j),
+		})
+	}
 	return a < b
 }
 
@@ -22,10 +31,31 @@ func (s *SortingState) Swap(data []int, i, j int) {
 	if s.Mode == Visualization {
 		stateCopy := make([]int, len(data))
 		copy(stateCopy, data)
-		s.Events = append(s.Events, StateEvent{
-			State:       stateCopy,
+		s.Events = append(s.Events, AlgorithmEvent{
+			Timestamp:   time.Now().UnixMilli(),
+			Category:    ArrayMutation,
 			Event:       "swap",
-			Description: "Swapped elements",
+			Indices:     []int{i, j},
+			Values:      []int{data[i], data[j]},
+			Description: fmt.Sprintf("Swapped index %d and %d", i, j),
+			State:       stateCopy,
+		})
+	}
+}
+
+func (s *SortingState) Mutation(data []int, i, val int, eventName, desc string) {
+	data[i] = val
+	if s.Mode == Visualization {
+		stateCopy := make([]int, len(data))
+		copy(stateCopy, data)
+		s.Events = append(s.Events, AlgorithmEvent{
+			Timestamp:   time.Now().UnixMilli(),
+			Category:    ArrayMutation,
+			Event:       eventName,
+			Indices:     []int{i},
+			Values:      []int{val},
+			Description: desc,
+			State:       stateCopy,
 		})
 	}
 }
@@ -41,7 +71,7 @@ func runSort(algoName string, data []int, mode AlgorithmMode) VersionedAlgorithm
 
 	state := SortingState{
 		Mode:        mode,
-		Events:      []StateEvent{},
+		Events:      []AlgorithmEvent{},
 		Comparisons: 0,
 		Swaps:       0,
 	}
@@ -169,7 +199,9 @@ func merge(state *SortingState, data []int, left, mid, right int) {
 		if state.Mode == Visualization {
 			stateCopy := make([]int, len(data))
 			copy(stateCopy, data)
-			state.Events = append(state.Events, StateEvent{
+			state.Events = append(state.Events, AlgorithmEvent{
+				Timestamp:   time.Now().UnixMilli(),
+				Category:    ArrayMutation,
 				State:       stateCopy,
 				Event:       "merge",
 				Description: "Merged elements",
@@ -183,7 +215,9 @@ func merge(state *SortingState, data []int, left, mid, right int) {
 		if state.Mode == Visualization {
 			stateCopy := make([]int, len(data))
 			copy(stateCopy, data)
-			state.Events = append(state.Events, StateEvent{
+			state.Events = append(state.Events, AlgorithmEvent{
+				Timestamp:   time.Now().UnixMilli(),
+				Category:    ArrayMutation,
 				State:       stateCopy,
 				Event:       "merge",
 				Description: "Merged elements",
@@ -198,7 +232,9 @@ func merge(state *SortingState, data []int, left, mid, right int) {
 		if state.Mode == Visualization {
 			stateCopy := make([]int, len(data))
 			copy(stateCopy, data)
-			state.Events = append(state.Events, StateEvent{
+			state.Events = append(state.Events, AlgorithmEvent{
+				Timestamp:   time.Now().UnixMilli(),
+				Category:    ArrayMutation,
 				State:       stateCopy,
 				Event:       "merge",
 				Description: "Merged elements",
@@ -232,7 +268,9 @@ func insertionSort(state *SortingState, data []int) {
 				if state.Mode == Visualization {
 					stateCopy := make([]int, len(data))
 					copy(stateCopy, data)
-					state.Events = append(state.Events, StateEvent{
+					state.Events = append(state.Events, AlgorithmEvent{
+						Timestamp:   time.Now().UnixMilli(),
+						Category:    ArrayMutation,
 						State:       stateCopy,
 						Event:       "shift",
 						Description: "Shifted element",
@@ -246,7 +284,9 @@ func insertionSort(state *SortingState, data []int) {
 		if state.Mode == Visualization {
 			stateCopy := make([]int, len(data))
 			copy(stateCopy, data)
-			state.Events = append(state.Events, StateEvent{
+			state.Events = append(state.Events, AlgorithmEvent{
+				Timestamp:   time.Now().UnixMilli(),
+				Category:    ArrayMutation,
 				State:       stateCopy,
 				Event:       "insert",
 				Description: "Inserted element",
@@ -322,7 +362,9 @@ func shellSort(state *SortingState, data []int) {
 					if state.Mode == Visualization {
 						stateCopy := make([]int, len(data))
 						copy(stateCopy, data)
-						state.Events = append(state.Events, StateEvent{
+						state.Events = append(state.Events, AlgorithmEvent{
+							Timestamp:   time.Now().UnixMilli(),
+							Category:    ArrayMutation,
 							State:       stateCopy,
 							Event:       "shift",
 							Description: "Shifted element",
@@ -336,7 +378,9 @@ func shellSort(state *SortingState, data []int) {
 			if state.Mode == Visualization {
 				stateCopy := make([]int, len(data))
 				copy(stateCopy, data)
-				state.Events = append(state.Events, StateEvent{
+				state.Events = append(state.Events, AlgorithmEvent{
+					Timestamp:   time.Now().UnixMilli(),
+					Category:    ArrayMutation,
 					State:       stateCopy,
 					Event:       "insert",
 					Description: "Inserted element",

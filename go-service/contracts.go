@@ -7,10 +7,22 @@ const (
 	Benchmark     AlgorithmMode = "benchmark"
 )
 
-type StateEvent struct {
-	State       []int  `json:"state"`
-	Event       string `json:"event"`
-	Description string `json:"description"`
+type EventCategory string
+
+const (
+	ArrayMutation EventCategory = "array_mutation"
+	Comparison    EventCategory = "comparison"
+	Traversal     EventCategory = "traversal"
+)
+
+type AlgorithmEvent struct {
+	Timestamp   int64         `json:"timestamp"`
+	Category    EventCategory `json:"category"`
+	Event       string        `json:"event"`
+	Indices     []int         `json:"indices,omitempty"`
+	Values      []int         `json:"values,omitempty"`
+	Description string        `json:"description,omitempty"`
+	State       []int         `json:"state,omitempty"` // Legacy support
 }
 
 type PerformanceMetrics struct {
@@ -30,7 +42,7 @@ type VersionedAlgorithmContract struct {
 	Algorithm  string             `json:"algorithm"`
 	Mode       AlgorithmMode      `json:"mode"`
 	FinalState []int              `json:"final_state,omitempty"`
-	Events     []StateEvent       `json:"events,omitempty"`
+	Events     []AlgorithmEvent   `json:"events,omitempty"`
 	Metrics    PerformanceMetrics `json:"metrics,omitempty"`
 	Complexity Complexity         `json:"complexity,omitempty"`
 }

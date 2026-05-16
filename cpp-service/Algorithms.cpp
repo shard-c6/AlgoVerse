@@ -5,45 +5,49 @@
 
 using namespace std::chrono;
 
-void add_step_c(json& events, const int* arr, int n, const std::vector<int>& highlighted, bool viz) {
+void add_step_c(json& events, const int* arr, int n, const std::vector<int>& highlighted, const std::string& event, const std::string& desc, bool viz) {
     if (!viz) return;
-    json event;
-    event["values"] = std::vector<int>(arr, arr + n);
-    event["indices"] = highlighted;
-    event["category"] = highlighted.empty() ? "mutation" : "comparison";
-    event["timestamp"] = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    events.push_back(event);
+    json e;
+    e["values"] = std::vector<int>(arr, arr + n);
+    e["indices"] = highlighted;
+    e["category"] = highlighted.empty() ? "array_mutation" : "comparison";
+    e["event"] = event;
+    e["description"] = desc;
+    e["timestamp"] = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    events.push_back(e);
 }
 
-void add_step_cpp(json& events, const std::vector<int>& arr, const std::vector<int>& highlighted, bool viz) {
+void add_step_cpp(json& events, const std::vector<int>& arr, const std::vector<int>& highlighted, const std::string& event, const std::string& desc, bool viz) {
     if (!viz) return;
-    json event;
-    event["values"] = arr;
-    event["indices"] = highlighted;
-    event["category"] = highlighted.empty() ? "mutation" : "comparison";
-    event["timestamp"] = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    events.push_back(event);
+    json e;
+    e["values"] = arr;
+    e["indices"] = highlighted;
+    e["category"] = highlighted.empty() ? "array_mutation" : "comparison";
+    e["event"] = event;
+    e["description"] = desc;
+    e["timestamp"] = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    events.push_back(e);
 }
 
 // ================= C IMPLEMENTATIONS (Using raw pointers) =================
 
 void c_bubble_sort(int* arr, int n, json& events, bool viz) {
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "init", "Starting Bubble Sort", viz);
     for (int i = 0; i < n - 1; i++) {
         bool swapped = false;
         for (int j = 0; j < n - i - 1; j++) {
-            add_step_c(events, arr, n, {j, j + 1}, viz);
+            add_step_c(events, arr, n, {j, j + 1}, "comparison", "Comparing elements", viz);
             if (arr[j] > arr[j + 1]) {
                 int temp = arr[j];
                 arr[j] = arr[j + 1];
                 arr[j + 1] = temp;
                 swapped = true;
-                add_step_c(events, arr, n, {j, j + 1}, viz);
+                add_step_c(events, arr, n, {j, j + 1}, "swap", "Swapped elements", viz);
             }
         }
         if (!swapped) break;
     }
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "final", "Bubble Sort complete", viz);
 }
 
 void c_quick_sort_helper(int* arr, int n, int low, int high, json& events, bool viz) {
@@ -51,19 +55,19 @@ void c_quick_sort_helper(int* arr, int n, int low, int high, json& events, bool 
         int pivot = arr[high];
         int i = low - 1;
         for (int j = low; j < high; j++) {
-            add_step_c(events, arr, n, {j, high}, viz);
+            add_step_c(events, arr, n, {j, high}, "comparison", "Comparing with pivot", viz);
             if (arr[j] < pivot) {
                 i++;
                 int temp = arr[i];
                 arr[i] = arr[j];
                 arr[j] = temp;
-                add_step_c(events, arr, n, {i, j}, viz);
+                add_step_c(events, arr, n, {i, j}, "swap", "Swapped elements", viz);
             }
         }
         int temp = arr[i + 1];
         arr[i + 1] = arr[high];
         arr[high] = temp;
-        add_step_c(events, arr, n, {i + 1, high}, viz);
+        add_step_c(events, arr, n, {i + 1, high}, "swap", "Pivot placed", viz);
         int pi = i + 1;
         
         c_quick_sort_helper(arr, n, low, pi - 1, events, viz);
@@ -82,7 +86,7 @@ void c_merge(int* arr, int n, int left, int mid, int right, json& events, bool v
     
     int i = 0, j = 0, k = left;
     while (i < n1 && j < n2) {
-        add_step_c(events, arr, n, {left + i, mid + 1 + j}, viz);
+        add_step_c(events, arr, n, {left + i, mid + 1 + j}, "comparison", "Comparing sub-arrays", viz);
         if (L[i] <= R[j]) {
             arr[k] = L[i];
             i++;
@@ -90,17 +94,17 @@ void c_merge(int* arr, int n, int left, int mid, int right, json& events, bool v
             arr[k] = R[j];
             j++;
         }
-        add_step_c(events, arr, n, {k}, viz);
+        add_step_c(events, arr, n, {k}, "merge", "Merging element", viz);
         k++;
     }
     while (i < n1) {
         arr[k] = L[i];
-        add_step_c(events, arr, n, {k}, viz);
+        add_step_c(events, arr, n, {k}, "merge", "Merging remaining element", viz);
         i++; k++;
     }
     while (j < n2) {
         arr[k] = R[j];
-        add_step_c(events, arr, n, {k}, viz);
+        add_step_c(events, arr, n, {k}, "merge", "Merging remaining element", viz);
         j++; k++;
     }
     delete[] L;
@@ -117,29 +121,29 @@ void c_merge_sort_helper(int* arr, int n, int left, int right, json& events, boo
 }
 
 void c_insertion_sort(int* arr, int n, json& events, bool viz) {
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "init", "Starting Insertion Sort", viz);
     for (int i = 1; i < n; i++) {
         int key = arr[i];
         int j = i - 1;
-        add_step_c(events, arr, n, {i}, viz);
+        add_step_c(events, arr, n, {i}, "selection", "Picking element to insert", viz);
         while (j >= 0 && arr[j] > key) {
-            add_step_c(events, arr, n, {j, j + 1}, viz);
+            add_step_c(events, arr, n, {j, j + 1}, "comparison", "Comparing elements", viz);
             arr[j + 1] = arr[j];
-            add_step_c(events, arr, n, {j, j + 1}, viz);
+            add_step_c(events, arr, n, {j, j + 1}, "shift", "Shifting element", viz);
             j = j - 1;
         }
         arr[j + 1] = key;
-        add_step_c(events, arr, n, {j + 1}, viz);
+        add_step_c(events, arr, n, {j + 1}, "insert", "Inserted element", viz);
     }
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "final", "Insertion Sort complete", viz);
 }
 
 void c_selection_sort(int* arr, int n, json& events, bool viz) {
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "init", "Starting Selection Sort", viz);
     for (int i = 0; i < n - 1; i++) {
         int min_idx = i;
         for (int j = i + 1; j < n; j++) {
-            add_step_c(events, arr, n, {min_idx, j}, viz);
+            add_step_c(events, arr, n, {min_idx, j}, "comparison", "Finding minimum", viz);
             if (arr[j] < arr[min_idx]) {
                 min_idx = j;
             }
@@ -148,10 +152,10 @@ void c_selection_sort(int* arr, int n, json& events, bool viz) {
             int temp = arr[min_idx];
             arr[min_idx] = arr[i];
             arr[i] = temp;
-            add_step_c(events, arr, n, {i, min_idx}, viz);
+            add_step_c(events, arr, n, {i, min_idx}, "swap", "Swapping minimum", viz);
         }
     }
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "final", "Selection Sort complete", viz);
 }
 
 void c_heapify(int* arr, int n_total, int n, int i, json& events, bool viz) {
@@ -160,38 +164,38 @@ void c_heapify(int* arr, int n_total, int n, int i, json& events, bool viz) {
     int r = 2 * i + 2;
     
     if (l < n) {
-        add_step_c(events, arr, n_total, {largest, l}, viz);
+        add_step_c(events, arr, n_total, {largest, l}, "comparison", "Comparing children", viz);
         if (arr[l] > arr[largest]) largest = l;
     }
     if (r < n) {
-        add_step_c(events, arr, n_total, {largest, r}, viz);
+        add_step_c(events, arr, n_total, {largest, r}, "comparison", "Comparing children", viz);
         if (arr[r] > arr[largest]) largest = r;
     }
     
     if (largest != i) {
-        add_step_c(events, arr, n_total, {i, largest}, viz);
+        add_step_c(events, arr, n_total, {i, largest}, "swap", "Swapping with child", viz);
         int temp = arr[i];
         arr[i] = arr[largest];
         arr[largest] = temp;
-        add_step_c(events, arr, n_total, {i, largest}, viz);
+        add_step_c(events, arr, n_total, {i, largest}, "swap", "Swapping with child", viz);
         c_heapify(arr, n_total, n, largest, events, viz);
     }
 }
 
 void c_heap_sort(int* arr, int n, json& events, bool viz) {
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "init", "Starting Heap Sort", viz);
     for (int i = n / 2 - 1; i >= 0; i--) {
         c_heapify(arr, n, n, i, events, viz);
     }
     for (int i = n - 1; i > 0; i--) {
-        add_step_c(events, arr, n, {0, i}, viz);
+        add_step_c(events, arr, n, {0, i}, "swap", "Swapping root with last", viz);
         int temp = arr[0];
         arr[0] = arr[i];
         arr[i] = temp;
-        add_step_c(events, arr, n, {0, i}, viz);
+        add_step_c(events, arr, n, {0, i}, "swap", "Swapped root", viz);
         c_heapify(arr, n, i, 0, events, viz);
     }
-    add_step_c(events, arr, n, {}, viz);
+    add_step_c(events, arr, n, {}, "final", "Heap Sort complete", viz);
 }
 
 void c_count_sort(int* arr, int n, int exp, json& events, bool viz) {
