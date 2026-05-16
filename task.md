@@ -55,6 +55,7 @@
 - [x] Integrate Rust service into Backend Orchestrator
 - [x] Add Rust support to Frontend UI and Complexity Dashboard
 - [x] Verify Rust performance metrics persistence
+- [x] Standardized Rust events with Initial/Final states and descriptions
 
 ## Phase 6: Code Snippet Viewer [x]
 - [x] Install `react-syntax-highlighter` dependency
@@ -63,13 +64,16 @@
 - [x] Integrate "Code" tab in `App.tsx` navigation
 - [x] Verify active view state mapping
 
-## Phase 7: Polyglot Expansion (Go, C, C++, C#, Java) [ ]
+## Phase 7: Polyglot Expansion (Go, C, C++, C#, Java) [/]
 - [ ] Implement Go Execution Engine (`go-service`)
 - [ ] Implement C# Execution Engine (`csharp-service`)
-- [ ] Implement Java Execution Engine (`java-service`)
+- [x] Implement Java Execution Engine (`java-service`)
 - [ ] Implement C/C++ Execution Engine (`cpp-service`)
+- [x] Standardize Java events with Initial/Final states and descriptions
+- [x] Standardize Julia events with Initial/Final states and descriptions
+- [x] Update Frontend SortingVisualizer to support unified data contract
 - [ ] Update Python Orchestrator (`main.py`) to route to new services
 - [ ] Expand frontend Code Snippet Viewer to support new languages
-- [ ] Update frontend dashboard with buttons for new languages
+- [x] Update frontend dashboard with buttons for new languages
 - [ ] Update `run_local.sh` to launch new services
-- [ ] Test and verify all pipelines
+- [/] Test and verify all pipelines
