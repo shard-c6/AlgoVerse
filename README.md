@@ -10,11 +10,11 @@ Unlike traditional visualizers, AlgoVerse treats algorithms as **data pipelines*
 
 ## 🚀 Key Features
 
-- **Polyglot Execution**: Compare algorithm logic across Python and Julia (with support for Rust/Go in the roadmap).
-- **High-Performance Benchmarking**: Leverages `BenchmarkTools.jl` for industry-standard performance metrics (memory allocation, execution time, garbage collection).
-- **Contract-Driven Visualization**: Real-time event replay system (comparisons, swaps, access) driven by a strict JSON contract.
+- **Polyglot Execution**: Compare algorithm logic across Python, Julia, Rust, Go, C#, Java, C, and C++.
+- **High-Performance Benchmarking**: Leverages language-specific profiling tools (e.g., `BenchmarkTools.jl` for Julia, `std::chrono` for C++) for industry-standard performance metrics.
+- **Contract-Driven Visualization**: Real-time event replay system driven by a strict, unified JSON contract across all service backends.
 - **Complexity Analysis**: Automated asymptotic analysis and O-notation curve plotting (D3.js integration).
-- **Persistent Analytics Engine**: A dedicated Julia microservice (`Oxygen.jl`) handles heavy computations, reducing frontend overhead.
+- **Persistent Analytics Engine**: A dedicated microservice architecture using FastAPI, Oxygen.jl, Axum (Rust), and more to handle high-performance execution.
 - **Interactive Replay**: Pause, rewind, and step through algorithm execution events.
 
 ---
@@ -27,13 +27,17 @@ AlgoVerse is built as a modular monorepo, separating orchestration from executio
 - **Tech**: FastAPI (Python)
 - **Role**: Acts as the API Gateway. It handles input validation, proxies requests to language-specific engines, and manages the algorithm execution lifecycle.
 
-### 2. **The Analytics Engine (Julia Service)**
-- **Tech**: Oxygen.jl, BenchmarkTools.jl, JSON3.jl
-- **Role**: A high-performance worker that executes the heavy lifting. It returns structured "event streams" for visualization and "metric payloads" for benchmarking.
+### 2. **The Execution Engines (Microservices)**
+- **Julia**: Port 8080 (`Oxygen.jl`)
+- **Rust**: Port 8081 (`Axum`)
+- **Go**: Port 8082 (`Standard Net/HTTP`)
+- **C#**: Port 8083 (`ASP.NET Core`)
+- **Java**: Port 8084 (`Javalin/Maven`)
+- **C/C++**: Port 8085 (`Cpp-Http-Lib`)
 
 ### 3. **The Lab (Frontend)**
 - **Tech**: React (Vite + TypeScript), Tailwind CSS, Framer Motion
-- **Role**: A premium dashboard that renders the algorithm replay. It uses a generic replay engine that doesn't care which language produced the events—only that they follow the **AlgoVerse Contract**.
+- **Role**: A premium dashboard that renders the algorithm replay. It uses a generic replay engine that supports a unified contract for all supported languages.
 
 ---
 
@@ -45,7 +49,7 @@ At the heart of the project is the `VersionedAlgorithmContract`. Every execution
 {
   "version": "1.0",
   "algorithm": "quicksort",
-  "language": "julia",
+  "language": "rust",
   "events": [
     { "type": "COMPARE", "indices": [0, 1], "metadata": { "pivot": 42 } },
     { "type": "SWAP", "indices": [0, 5] }
@@ -58,7 +62,7 @@ At the heart of the project is the `VersionedAlgorithmContract`. Every execution
 }
 ```
 
-This decoupling allows us to add new languages or visualization styles without breaking the core system.
+This decoupling allows for seamless expansion into any language that can produce JSON.
 
 ---
 
@@ -67,6 +71,11 @@ This decoupling allows us to add new languages or visualization styles without b
 ### Prerequisites
 - **Python 3.9+**
 - **Julia 1.10+**
+- **Rust (Cargo)**
+- **Go 1.20+**
+- **.NET 8+**
+- **JDK 17+**
+- **GCC/G++**
 - **Node.js 18+**
 
 ### Local Setup (One-Click)
@@ -82,21 +91,18 @@ chmod +x run_local.sh
 ./run_local.sh
 ```
 
-The stack will initialize:
-- **Frontend**: `http://localhost:5173`
-- **FastAPI API**: `http://localhost:8000`
-- **Julia Engine**: `http://localhost:8080`
-
 ---
 
 ## 🗺️ Roadmap
 
 - [x] **Phase 1**: Core Orchestrator + Julia Service Integration.
 - [x] **Phase 2**: Versioned Contract & Scaling Algorithm Engine (Quick, Merge, Insertion Sort).
-- [x] **Phase 3**: Persistence Layer (SQLite/PostgreSQL) for Benchmark History.
+- [x] **Phase 3**: Persistence Layer (SQLite) for Benchmark History.
 - [x] **Phase 4**: D3.js Asymptotic Complexity Dashboard.
-- [ ] **Phase 5**: Rust Execution Engine & WebAssembly Support.
-- [ ] **Phase 6**: "Battle Mode" (Side-by-side language performance comparison).
+- [x] **Phase 5**: Rust Execution Engine & WebAssembly Support.
+- [x] **Phase 6**: Code Snippet Viewer with Syntax Highlighting.
+- [x] **Phase 7**: Polyglot Expansion (Go, C, C++, C#, Java).
+- [ ] **Phase 8**: "Battle Mode" (Side-by-side language performance comparison).
 
 ---
 
