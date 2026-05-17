@@ -82,7 +82,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({ algorithm, isLowIntensity, high
   };
 
   return (
-    <div className={`glass-panel rounded-[2.5rem] p-6 lg:p-10 h-full flex flex-col relative overflow-hidden group hud-corners hud-corners-tl hud-corners-br ${isLowIntensity ? '' : 'scanlines'}`}>
+    <div className="glass-panel rounded-[2.5rem] p-6 lg:p-10 h-full flex flex-col relative overflow-hidden group hud-corners hud-corners-tl hud-corners-br">
       <div className="absolute inset-0 bg-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 lg:gap-6 mb-8 lg:mb-10 relative z-10">

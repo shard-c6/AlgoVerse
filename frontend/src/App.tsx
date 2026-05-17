@@ -58,10 +58,13 @@ function App() {
       <div className="scanlines"></div>
       <div className="noise-overlay"></div>
 
-      {/* Animated Background Layer */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/10 blur-[120px] animate-morph opacity-50"></div>
-        <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-accent/5 blur-[100px] animate-morph opacity-30" style={{ animationDelay: '-5s' }}></div>
+      {/* Space Parallax Stars & Nebula Background */}
+      <div className="space-parallax">
+        <div className="stars-layer-1"></div>
+        <div className="stars-layer-2"></div>
+        <div className="stars-layer-3"></div>
+        <div className="nebula-cloud-1"></div>
+        <div className="nebula-cloud-2"></div>
       </div>
 
       <header className="relative z-50 pt-10 pb-12 px-6 lg:px-8 max-w-7xl mx-auto">
@@ -138,7 +141,7 @@ function App() {
 
       <main className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20">
         {/* Controls Panel */}
-        <aside className="lg:col-span-4 space-y-8">
+        <aside className="lg:col-span-3 space-y-8">
           <section className="p-8 glass-panel rounded-[2.5rem] shadow-premium hud-corners hud-corners-tl hud-corners-br" aria-labelledby="orchestrator-title">
             <h2 id="orchestrator-title" className="text-sm font-bold mb-8 flex items-center gap-3 text-secondary font-mono tracking-[0.3em] uppercase">
               <Terminal className="w-5 h-5 neon-glow-cyan" />
@@ -265,10 +268,10 @@ function App() {
         </aside>
 
         {/* Display Panel */}
-        <section className="lg:col-span-8 space-y-8" aria-live="polite">
+        <section className="lg:col-span-9 space-y-8" aria-live="polite">
           {activeView === 'visualize' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-              <div className="lg:col-span-8 space-y-8 lg:space-y-10">
+              <div className="lg:col-span-7 space-y-8 lg:space-y-10">
                 <div className="min-h-[640px] glass-panel rounded-[3rem] flex items-center justify-center relative overflow-hidden group shadow-premium">
                   {loading ? (
                     <div className="flex flex-col items-center gap-8">
@@ -392,7 +395,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="lg:col-span-4 h-auto lg:h-[1050px] lg:sticky lg:top-8 order-last lg:order-none">
+              <div className="lg:col-span-5 h-auto lg:h-[1050px] lg:sticky lg:top-8 order-last lg:order-none">
                 <CodeViewer 
                   algorithm={selectedAlgo} 
                   isLowIntensity={isLowIntensity} 

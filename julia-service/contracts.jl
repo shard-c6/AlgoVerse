@@ -6,7 +6,7 @@ using StructTypes
 export AlgorithmMode, visualization, benchmark
 export VisualizationLevel, minimal, educational, verbose
 export EventCategory, initial, final, array_mutation, comparison, traversal, recursion, backtracking, graph_action
-export AlgorithmEvent, AlgorithmMetrics, AlgorithmComplexity, VersionedAlgorithmContract
+export AlgorithmEvent, EventMetadata, AlgorithmMetrics, AlgorithmComplexity, VersionedAlgorithmContract
 
 @enum AlgorithmMode visualization benchmark
 @enum VisualizationLevel minimal educational verbose
